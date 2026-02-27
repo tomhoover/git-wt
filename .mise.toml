@@ -1,0 +1,6 @@
+[env]
+# get python deprecation warnings
+# PYTHONDEVMODE=1
+
+[tools]
+bats = "1.13"
