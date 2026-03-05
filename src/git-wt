@@ -11,35 +11,35 @@ VERSION="0.1.0"
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
-    RED=$(tput setaf 1)
-    GREEN=$(tput setaf 2)
-    # YELLOW=$(tput setaf 3)
-    # BLUE=$(tput setaf 4)
-    MAGENTA=$(tput setaf 5)
-    CYAN=$(tput setaf 6)
-    RESET=$(tput sgr0)
+  RED=$(tput setaf 1)
+  GREEN=$(tput setaf 2)
+  # YELLOW=$(tput setaf 3)
+  # BLUE=$(tput setaf 4)
+  MAGENTA=$(tput setaf 5)
+  CYAN=$(tput setaf 6)
+  RESET=$(tput sgr0)
 else
-    RED=
-    GREEN=
-    # YELLOW=
-    # BLUE=
-    MAGENTA=
-    CYAN=
-    RESET=
+  RED=
+  GREEN=
+  # YELLOW=
+  # BLUE=
+  MAGENTA=
+  CYAN=
+  RESET=
 fi
 
 error() { #{{{
-    echo "${RED}ERROR: ${1}${RESET}" >&2
+  echo "${RED}ERROR: ${1}${RESET}" >&2
 } #}}}
 
 success() { #{{{
-    echo "${GREEN}SUCCESS: ${1}${RESET}"
+  echo "${GREEN}SUCCESS: ${1}${RESET}"
 } #}}}
 
 missing_worktree_name() { #{{{
-    error "'${1}' requires a worktree name"
-    usage
-    exit 1
+  error "'${1}' requires a worktree name"
+  usage
+  exit 1
 } #}}}
 
 # Disabled: requires awk; sed approach sufficient for now
@@ -57,29 +57,29 @@ missing_worktree_name() { #{{{
 # } #}}}
 
 add_worktree() { #{{{
-    local branch="${1}"
-    local target="${REPO_ROOT}+${branch}"
-    if [[ "${branch}" == HEAD* ]]; then
-        error "Please provide a branch name, not a commit reference"
-        exit 1
+  local branch="${1}"
+  local target="${REPO_ROOT}+${branch}"
+  if [[ "${branch}" == HEAD* ]]; then
+    error "Please provide a branch name, not a commit reference"
+    exit 1
+  fi
+  if [[ -d "${target}" ]]; then
+    error "Worktree directory '${target}' already exists"
+    exit 1
+  fi
+  # Try checking out existing branch first, then create a new one
+  if ! git worktree add "${target}" "${branch}" 2>/dev/null; then
+    if ! git worktree add -b "${branch}" "${target}" 2>/dev/null; then
+      error "Failed to create worktree for '${branch}' — branch may already be checked out elsewhere"
+      exit 1
     fi
-    if [[ -d "${target}" ]]; then
-        error "Worktree directory '${target}' already exists"
-        exit 1
-    fi
-    # Try checking out existing branch first, then create a new one
-    if ! git worktree add "${target}" "${branch}" 2>/dev/null; then
-        if ! git worktree add -b "${branch}" "${target}" 2>/dev/null; then
-            error "Failed to create worktree for '${branch}' — branch may already be checked out elsewhere"
-            exit 1
-        fi
-    fi
-    echo "${GREEN}Worktree created at: ${target}${RESET}"
-    echo "    ${MAGENTA}cd '${target}'${RESET}"
+  fi
+  echo "${GREEN}Worktree created at: ${target}${RESET}"
+  echo "    ${MAGENTA}cd '${target}'${RESET}"
 } #}}}
 
 usage() { #{{{
-    cat <<EOF
+  cat <<EOF
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
@@ -103,89 +103,89 @@ EOF
 } #}}}
 
 process_arguments() { #{{{
-    # shopt -s nocasematch
-    while [[ "$#" -ge 1 ]]; do
-        case "${1}" in
-        -h)
-            usage
-            exit 0
-            ;;
-        -d | --debug)
-            set -x
-            shift
-            continue
-            ;;
-        -f | --force)
-            FORCE=true
-            shift
-            continue
-            ;;
-        -v | --verbose)
-            VERBOSE=true
-            shift
-            continue
-            ;;
-        a | add)
-            shift
-            if [[ "$#" -ge 1 ]]; then
-                add_worktree "${1}"
-            else
-                missing_worktree_name "add"
-            fi
-            break
-            ;;
-        l | ls | list)
-            # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
-            escaped_pwd=$(printf '%s' "$(pwd -P)" | sed 's/[][\.*^$+(){}|]/\\&/g')
-            git worktree list | sed -e "s|^${escaped_pwd}.*$|${CYAN}&${RESET}|"
-            break
-            ;;
-        r | rm | remove)
-            shift
-            if [[ "$#" -ge 1 ]]; then
-                if ! git worktree list --porcelain | grep -Fq "worktree ${REPO_ROOT}+${1}"; then
-                    error "Worktree '${1}' not found"
-                    exit 1
-                else
-                    # ${FORCE:+-f} intentionally unquoted — empty expansion must pass no argument
-                    # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
-                    git worktree remove ${FORCE:+-f} "${REPO_ROOT}+${1}"
-                    success "Worktree '${1}' removed successfully"
-                fi
-            else
-                missing_worktree_name "remove"
-            fi
-            break
-            ;;
-        p | pr | prune)
-            git worktree prune ${VERBOSE:+-v}
-            success "Prune complete"
-            break
-            ;;
-        v | version)
-            echo "git-wt version ${VERSION}"
-            break
-            ;;
-        *)
-            error "Unknown argument: ${1}"
-            usage
+  # shopt -s nocasematch
+  while [[ "$#" -ge 1 ]]; do
+    case "${1}" in
+      -h)
+        usage
+        exit 0
+        ;;
+      -d | --debug)
+        set -x
+        shift
+        continue
+        ;;
+      -f | --force)
+        FORCE=true
+        shift
+        continue
+        ;;
+      -v | --verbose)
+        VERBOSE=true
+        shift
+        continue
+        ;;
+      a | add)
+        shift
+        if [[ "$#" -ge 1 ]]; then
+          add_worktree "${1}"
+        else
+          missing_worktree_name "add"
+        fi
+        break
+        ;;
+      l | ls | list)
+        # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
+        escaped_pwd=$(printf '%s' "$(pwd -P)" | sed 's/[][\.*^$+(){}|]/\\&/g')
+        git worktree list | sed -e "s|^${escaped_pwd}.*$|${CYAN}&${RESET}|"
+        break
+        ;;
+      r | rm | remove)
+        shift
+        if [[ "$#" -ge 1 ]]; then
+          if ! git worktree list --porcelain | grep -Fq "worktree ${REPO_ROOT}+${1}"; then
+            error "Worktree '${1}' not found"
             exit 1
-            ;;
-        esac
-    done
+          else
+            # ${FORCE:+-f} intentionally unquoted — empty expansion must pass no argument
+            # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
+            git worktree remove ${FORCE:+-f} "${REPO_ROOT}+${1}"
+            success "Worktree '${1}' removed successfully"
+          fi
+        else
+          missing_worktree_name "remove"
+        fi
+        break
+        ;;
+      p | pr | prune)
+        git worktree prune ${VERBOSE:+-v}
+        success "Prune complete"
+        break
+        ;;
+      v | version)
+        echo "git-wt version ${VERSION}"
+        break
+        ;;
+      *)
+        error "Unknown argument: ${1}"
+        usage
+        exit 1
+        ;;
+    esac
+  done
 } #}}}
 
 if ! git rev-parse --git-dir &>/dev/null; then
-    error "Not inside a git repository"
-    exit 1
+  error "Not inside a git repository"
+  exit 1
 else
-    REPO_ROOT="$(git rev-parse --show-toplevel)"
+  REPO_ROOT="$(git rev-parse --show-toplevel)"
 fi
 
 if [[ "$#" -eq 0 ]]; then
-    usage
+  usage
 else
-    process_arguments "$@"
+  process_arguments "$@"
 fi
 
-# vim: set tw=100 expandtab tabstop=4 shiftwidth=4 fdm=marker commentstring=#%s:
+# vim: set tw=100 expandtab tabstop=2 shiftwidth=2 fdm=marker commentstring=#%s:

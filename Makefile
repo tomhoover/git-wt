@@ -12,8 +12,8 @@ SHFMT       := shfmt
 # -ln bash: explicit language flag; omitted because shfmt infers bash from the shebang
 #  including it caused errors with bats test files
 
-# shfmt options: indent with 4 spaces, keep consistent with vim modeline
-SHFMT_OPTS  := -i 4
+# shfmt options: indent with 2 spaces, keep consistent with vim modeline
+SHFMT_OPTS  := -i 2 -bn -ci
 
 # shellcheck options: warn on everything, target bash
 SHELLCHECK_OPTS := --shell=bash --severity=warning
