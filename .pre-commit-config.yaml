@@ -20,7 +20,7 @@ repos:
     - id: detect-private-key
     - id: forbid-new-submodules
     - id: forbid-submodules
-    - id: no-commit-to-branch
+#    - id: no-commit-to-branch
 #      stages: [pre-commit, pre-merge-commit, pre-rebase]
 
     # python
@@ -72,25 +72,32 @@ repos:
       types: [text]
       exclude: '.pre-commit-config.yaml'
 
-- repo: local
+- repo: https://github.com/tomhoover/pre-commit-hooks
+  rev: 3.0.0
   hooks:
-    - id: shellcheck
-      name: shellcheck
-      language: system
-      entry: shellcheck --shell=bash --severity=warning
-      types: [shell]
-
-    - id: shfmt
-      name: shfmt
-      language: system
-      entry: shfmt -i 2 -d
-      types: [shell]
-
+#    - id: bundler-audit
+    - id: check-mailmap
+#    - id: fasterer
+    - id: forbid-binary
     - id: forbid-space-in-indent
-      name: forbid space in indent (Makefile)
-      language: pygrep
-      entry: '^ '
       files: 'Makefile'
+    - id: git-check     # Configure in .gitattributes
+#    - id: git-dirty    # Configure in .gitignore
+#    - id: markdownlint # Configure in .mdlrc
+#    - id: reek
+#    - id: require-ascii
+#    - id: rubocop
+    - id: shellcheck
+    - id: shfmt
+      args: [ --apply-ignore ]
+
+  # google shell style guide:
+    # Libraries must have a .sh extension and should not be executable
+    - id: script-must-have-extension
+      types: [shell, non-executable]
+    # Executables should have no extension (strongly preferred)
+    - id: script-must-not-have-extension
+      types: [shell, executable]
 
 # python
 
