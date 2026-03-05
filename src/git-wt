@@ -57,6 +57,10 @@ missing_worktree_name() { #{{{
 # } #}}}
 
 switch_worktree() { #{{{
+  if [[ "$#" -eq 0 ]]; then
+    git worktree list --porcelain | awk 'NR==1{print $2}'
+    return
+  fi
   local branch="${1}"
   local target="${REPO_ROOT}+${branch}"
   if ! git worktree list --porcelain | grep -Fq "worktree ${target}"; then
@@ -108,7 +112,7 @@ Usage: git-wt [options] <command> [<worktree>]
         l | ls | list   ) list worktrees
         r | rm | remove ) the -f|--force flag is only useful for removing a dirty worktree
         p | pr | prune  ) prune worktrees
-        s | sw | switch ) print path to worktree (use: cd "\$(git wt switch <worktree>)")
+        s | sw | switch ) print path to worktree; no arg = main worktree (use: cd "\$(git wt switch [<worktree>])")
         v | version     ) display version
 ${RESET}
 EOF
@@ -174,7 +178,7 @@ process_arguments() { #{{{
         if [[ "$#" -ge 1 ]]; then
           switch_worktree "${1}"
         else
-          missing_worktree_name "switch"
+          switch_worktree
         fi
         break
         ;;
