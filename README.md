@@ -88,34 +88,3 @@ eval "$(git wt completion bash)"
 ### Alternative: file-based install
 
 Standalone completion scripts are also available in `completions/` — see the comments at the top of each file for instructions.
-
-## Development
-
-### Requirements
-
-Tools are managed via [mise](https://mise.jdx.dev/). Run `mise install` to install them.
-
-### Setup
-
-```bash
-make deps   # install bats-assert and bats-support into test/libs
-```
-
-### Common tasks
-
-```bash
-make              # lint + test
-make lint         # run shellcheck and shfmt check
-make fmt          # auto-format source and tests with shfmt
-make test         # run all tests
-make test-tap     # run tests with TAP output (for CI)
-make test-verbose # run tests with verbose output
-make clean        # remove deps and stray test worktrees
-make check-tools  # verify required tools are installed
-```
-
-Run a single test:
-
-```bash
-bats test/git-wt.bats --filter "git wt add"
-```
