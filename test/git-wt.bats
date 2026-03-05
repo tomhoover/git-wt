@@ -49,6 +49,7 @@ setup() { #{{{
   assert_output -p 'l | ls | list'
   assert_output -p 'r | rm | remove'
   assert_output -p 'p | pr | prune'
+  assert_output -p 's | sw | switch'
   assert_output -p 'v | version'
 } #}}}
 
@@ -264,6 +265,35 @@ setup() { #{{{
   # Already removed: should fail
   run -1 git wt -f -d remove bats_dirty
   assert_line -e '^ERROR: Worktree .* not found$'
+} #}}}
+
+# ── Switch ────────────────────────────────────────────────────────────────────
+
+@test "git wt switch (missing name)" { #{{{
+  run -1 git wt s
+  assert_output -p "ERROR: 'switch' requires a worktree name"
+  run -1 git wt sw
+  assert_output -p "ERROR: 'switch' requires a worktree name"
+  run -1 git wt switch
+  assert_output -p "ERROR: 'switch' requires a worktree name"
+} #}}}
+
+@test "git wt switch (worktree not found)" { #{{{
+  run -1 git wt switch nonexistent_worktree
+  assert_line -e "^ERROR: Worktree '.*' not found$"
+} #}}}
+
+@test "git wt switch bats_xyz (prints path)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt s bats_xyz
+  assert_output "$(pwd -P)+bats_xyz"
+  run -0 git wt sw bats_xyz
+  assert_output "$(pwd -P)+bats_xyz"
+  run -0 git wt switch bats_xyz
+  assert_output "$(pwd -P)+bats_xyz"
 } #}}}
 
 # ── Prune ─────────────────────────────────────────────────────────────────────
