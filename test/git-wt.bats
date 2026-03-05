@@ -269,13 +269,14 @@ setup() { #{{{
 
 # ── Switch ────────────────────────────────────────────────────────────────────
 
-@test "git wt switch (missing name)" { #{{{
-  run -1 git wt s
-  assert_output -p "ERROR: 'switch' requires a worktree name"
-  run -1 git wt sw
-  assert_output -p "ERROR: 'switch' requires a worktree name"
-  run -1 git wt switch
-  assert_output -p "ERROR: 'switch' requires a worktree name"
+@test "git wt switch (no args switches to main worktree)" { #{{{
+  main_worktree=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  run -0 git wt s
+  assert_output "${main_worktree}"
+  run -0 git wt sw
+  assert_output "${main_worktree}"
+  run -0 git wt switch
+  assert_output "${main_worktree}"
 } #}}}
 
 @test "git wt switch (worktree not found)" { #{{{
