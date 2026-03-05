@@ -33,6 +33,7 @@ git wt [options] <command> [<worktree>]
 | `list` | `l`, `ls` | List all worktrees; highlights the current one |
 | `remove <branch>` | `r`, `rm` | Remove the worktree for `<branch>` |
 | `prune` | `p`, `pr` | Prune stale worktree references |
+| `switch <branch>` | `s`, `sw` | Print path to worktree (use with `cd` — see below) |
 | `version` | `v` | Print version |
 
 ### Options
@@ -52,6 +53,14 @@ git wt ls                 # list all worktrees
 git wt remove feature-x   # remove the worktree
 git wt -f remove feature-x  # force-remove a dirty worktree
 git wt prune              # prune stale entries
+cd "$(git wt switch feature-x)"  # cd into a worktree
+```
+
+Because `switch` prints the path rather than changing directories (a subprocess cannot affect the parent shell), wrap it in a shell function for convenience:
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+gws() { cd "$(git wt switch "$@")"; }
 ```
 
 ## Development
