@@ -297,6 +297,30 @@ setup() { #{{{
   assert_output "$(pwd -P)+bats_xyz"
 } #}}}
 
+# ── Completion ────────────────────────────────────────────────────────────────
+
+@test "git wt completion bash" { #{{{
+  run -0 git wt completion bash
+  assert_output -p '_git_wt()'
+  assert_output -p 'complete -F _git_wt git-wt'
+} #}}}
+
+@test "git wt completion zsh" { #{{{
+  run -0 git wt completion zsh
+  assert_output -p '_git-wt()'
+  assert_output -p 'compdef _git-wt git-wt'
+} #}}}
+
+@test "git wt completion (unknown shell)" { #{{{
+  run -1 git wt completion fish
+  assert_line -e "^ERROR: Unknown shell: 'fish'.*$"
+} #}}}
+
+@test "git wt completion (missing shell)" { #{{{
+  run -1 git wt completion
+  assert_line -e "^ERROR: Unknown shell: ''.*$"
+} #}}}
+
 # ── Prune ─────────────────────────────────────────────────────────────────────
 
 @test "git wt prune (all aliases)" { #{{{

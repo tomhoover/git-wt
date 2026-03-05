@@ -67,34 +67,27 @@ gws() { cd "$(git wt switch "$@")"; }
 
 ## Shell completion
 
-Completion scripts for zsh and bash are in the `completions/` directory. They complete commands, branch names (for `add`), and worktree names (for `remove` and `switch`).
+Completes commands, branch names (for `add`), and worktree names (for `remove` and `switch`).
 
 ### Zsh
 
-```bash
-mkdir -p ~/.zsh/completions
-cp completions/_git-wt ~/.zsh/completions/
-```
-
-Add to `~/.zshrc` (before `compinit`):
+Add to `~/.zshrc`:
 
 ```zsh
-fpath=(~/.zsh/completions $fpath)
-```
-
-Then rebuild the completion cache:
-
-```bash
-rm -f ~/.zcompdump && compinit
+eval "$(git wt completion zsh)"
 ```
 
 ### Bash
 
+Add to `~/.bashrc`:
+
 ```bash
-source /path/to/completions/git-wt.sh
+eval "$(git wt completion bash)"
 ```
 
-Or add that line to `~/.bashrc` for persistence.
+### Alternative: file-based install
+
+Standalone completion scripts are also available in `completions/` — see the comments at the top of each file for instructions.
 
 ## Development
 
