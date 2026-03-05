@@ -55,16 +55,16 @@ test-verbose: ## Run bats tests with verbose output
 
 # ── Dependency bootstrap ──────────────────────────────────────────────────────
 
-deps: ## Install bats-assert, bats-support into test/.bats_deps
+deps: ## Install bats-assert, bats-support into test/libs
 	@command -v $(BATS) &>/dev/null || { echo "ERROR: $(BATS) is not installed"; exit 1; }
-	@mkdir -p $(TEST_DIR)/.bats_deps
-	@if [[ ! -d "$(TEST_DIR)/.bats_deps/bats-assert" ]]; then \
+	@mkdir -p $(TEST_DIR)/libs
+	@if [[ ! -d "$(TEST_DIR)/libs/bats-assert" ]]; then \
 		git clone --depth 1 https://github.com/bats-core/bats-assert \
-			$(TEST_DIR)/.bats_deps/bats-assert; \
+			$(TEST_DIR)/libs/bats-assert; \
 	fi
-	@if [[ ! -d "$(TEST_DIR)/.bats_deps/bats-support" ]]; then \
+	@if [[ ! -d "$(TEST_DIR)/libs/bats-support" ]]; then \
 		git clone --depth 1 https://github.com/bats-core/bats-support \
-			$(TEST_DIR)/.bats_deps/bats-support; \
+			$(TEST_DIR)/libs/bats-support; \
 	fi
 
 # ── Clean ─────────────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ deps: ## Install bats-assert, bats-support into test/.bats_deps
 clean: clean-deps clean-worktrees ## Remove deps and stray test worktrees
 
 clean-deps: ## Remove installed bats dependencies
-	rm -rf $(TEST_DIR)/.bats_deps
+	rm -rf $(TEST_DIR)/libs
 
 clean-worktrees: ## Remove any stray bats test worktrees
 	@git worktree list --porcelain \
