@@ -2,12 +2,17 @@
 
 # Zsh completion for git-wt / git wt
 #
-# Installation:
-#   Place this file in a directory on your $fpath, e.g.:
-#     cp completions/_git-wt ~/.zsh/completions/
+# Installation (choose one):
+#
+# Option A — eval (recommended, no extra files needed):
+#   Add to ~/.zshrc:
+#     eval "$(git wt completion zsh)"
+#
+# Option B — fpath:
+#   cp completions/_git-wt ~/.zsh/completions/
+#   Add to ~/.zshrc (before compinit):
 #     fpath=(~/.zsh/completions $fpath)
-#   Then rebuild the completion cache:
-#     rm -f ~/.zcompdump && compinit
+#   Then rebuild: rm -f ~/.zcompdump && compinit
 
 _git-wt() {
   local curcontext="$curcontext" state line
@@ -63,4 +68,4 @@ _git-wt() {
   esac
 }
 
-_git-wt "$@"
+compdef _git-wt git-wt

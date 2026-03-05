@@ -1,9 +1,14 @@
 # shellcheck shell=bash
 # Bash completion for git-wt / git wt
 #
-# Installation:
-#   Source this file from your ~/.bashrc:
-#     source /path/to/completions/git-wt.sh
+# Installation (choose one):
+#
+# Option A — eval (recommended, no extra files needed):
+#   Add to ~/.bashrc:
+#     eval "$(git wt completion bash)"
+#
+# Option B — source directly:
+#   source /path/to/completions/git-wt.sh
 #   Or copy to your bash_completion.d directory:
 #     cp completions/git-wt.sh /etc/bash_completion.d/git-wt
 
