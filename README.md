@@ -65,6 +65,37 @@ Because `switch` prints the path rather than changing directories (a subprocess 
 gws() { cd "$(git wt switch "$@")"; }
 ```
 
+## Shell completion
+
+Completion scripts for zsh and bash are in the `completions/` directory. They complete commands, branch names (for `add`), and worktree names (for `remove` and `switch`).
+
+### Zsh
+
+```bash
+mkdir -p ~/.zsh/completions
+cp completions/_git-wt ~/.zsh/completions/
+```
+
+Add to `~/.zshrc` (before `compinit`):
+
+```zsh
+fpath=(~/.zsh/completions $fpath)
+```
+
+Then rebuild the completion cache:
+
+```bash
+rm -f ~/.zcompdump && compinit
+```
+
+### Bash
+
+```bash
+source /path/to/completions/git-wt.sh
+```
+
+Or add that line to `~/.bashrc` for persistence.
+
 ## Development
 
 ### Requirements

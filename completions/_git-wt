@@ -1,0 +1,66 @@
+#compdef git-wt
+
+# Zsh completion for git-wt / git wt
+#
+# Installation:
+#   Place this file in a directory on your $fpath, e.g.:
+#     cp completions/_git-wt ~/.zsh/completions/
+#     fpath=(~/.zsh/completions $fpath)
+#   Then rebuild the completion cache:
+#     rm -f ~/.zcompdump && compinit
+
+_git-wt() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a commands
+  commands=(
+    'add:create a worktree (defaults to current branch)'
+    'a:create a worktree (defaults to current branch)'
+    'list:list worktrees'
+    'ls:list worktrees'
+    'l:list worktrees'
+    'remove:remove a worktree'
+    'rm:remove a worktree'
+    'r:remove a worktree'
+    'prune:prune stale worktree references'
+    'pr:prune stale worktree references'
+    'p:prune stale worktree references'
+    'switch:print path to worktree (no arg = main worktree)'
+    'sw:print path to worktree (no arg = main worktree)'
+    's:print path to worktree (no arg = main worktree)'
+    'version:print version'
+    'v:print version'
+  )
+
+  _arguments -C \
+    '(-h)-h[show help]' \
+    '(-d --debug)'{-d,--debug}'[enable bash trace (set -x)]' \
+    '(-f --force)'{-f,--force}'[force removal of dirty worktree]' \
+    '(-v --verbose)'{-v,--verbose}'[verbose output]' \
+    '1:command:->command' \
+    '*:argument:->argument'
+
+  case $state in
+    command)
+      _describe 'command' commands
+      ;;
+    argument)
+      case ${words[2]} in
+        add | a)
+          local -a branches
+          branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+          _describe 'branch' branches
+          ;;
+        remove | rm | r | switch | sw | s)
+          local -a worktrees
+          worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
+            | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
+          _describe 'worktree' worktrees
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_git-wt "$@"
