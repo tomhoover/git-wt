@@ -7,7 +7,7 @@ set -eu -o pipefail
 
 FORCE=""
 VERBOSE=""
-VERSION="0.1.0"
+VERSION="0.4.0"
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
