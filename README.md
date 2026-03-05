@@ -29,7 +29,7 @@ git wt [options] <command> [<worktree>]
 
 | Command | Aliases | Description |
 |---------|---------|-------------|
-| `add <branch>` | `a` | Create a worktree for `<branch>` (checks out existing or creates new) |
+| `add [<branch>]` | `a` | Create a worktree for `<branch>` (defaults to current branch; checks out existing or creates new) |
 | `list` | `l`, `ls` | List all worktrees; highlights the current one |
 | `remove <branch>` | `r`, `rm` | Remove the worktree for `<branch>` |
 | `prune` | `p`, `pr` | Prune stale worktree references |
@@ -48,6 +48,7 @@ git wt [options] <command> [<worktree>]
 ### Examples
 
 ```bash
+git wt add                # creates worktree for current branch
 git wt add feature-x      # creates ../repo+feature-x
 git wt ls                 # list all worktrees
 git wt remove feature-x   # remove the worktree

@@ -93,7 +93,7 @@ usage() { #{{{
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
-       git wt [-d][-v] add <worktree>
+       git wt [-d][-v] add [<worktree>]  # omit <worktree> to use current branch
        git wt -f [-d][-v] remove <worktree>     # the -f|--force flag is only useful for removing a dirty worktree
        cd "\$(git wt switch <worktree>)"         # switch to a worktree (wrap in a shell function for convenience)
 
@@ -104,7 +104,7 @@ Usage: git-wt [options] <command> [<worktree>]
         -v | --verbose  ) verbose
 
     Commands:
-        a | add         ) add a worktree
+        a | add         ) add a worktree (defaults to current branch if no name given)
         l | ls | list   ) list worktrees
         r | rm | remove ) the -f|--force flag is only useful for removing a dirty worktree
         p | pr | prune  ) prune worktrees
@@ -142,7 +142,7 @@ process_arguments() { #{{{
         if [[ "$#" -ge 1 ]]; then
           add_worktree "${1}"
         else
-          missing_worktree_name "add"
+          add_worktree "$(git rev-parse --abbrev-ref HEAD)"
         fi
         break
         ;;
