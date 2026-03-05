@@ -334,8 +334,9 @@ setup() { #{{{
 } #}}}
 
 @test "git wt -v prune (verbose flag passed to git)" { #{{{
-  run -0 git wt -v prune
-  assert_success
+  run -0 git wt -v -d prune
+  # shellcheck disable=SC2016
+  assert_output -p '+ git worktree prune -v'
   assert_output -p "Prune complete"
 } #}}}
 
@@ -343,6 +344,7 @@ setup() { #{{{
   run -0 git wt -d prune
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree prune'
+  refute_output -p '+ git worktree prune -v'
 } #}}}
 
 # vim: set tw=100 expandtab tabstop=2 shiftwidth=2 fdm=marker commentstring=#%s:
