@@ -22,7 +22,7 @@ SHELLCHECK_OPTS := --shell=bash --severity=warning
 
 # ── Default ───────────────────────────────────────────────────────────────────
 
-all: lint test
+all: lint test ## Run lint and test
 
 # ── Linting ───────────────────────────────────────────────────────────────────
 
@@ -45,6 +45,7 @@ fmt: ## Auto-format src and test files with shfmt (in place)
 # ── Testing ───────────────────────────────────────────────────────────────────
 
 test: ## Run all bats tests
+	@[[ -d "$(TEST_DIR)/libs/bats-assert" ]] || { echo "ERROR: run 'make deps' first"; exit 1; }
 	$(BATS) $(TEST_FILE)
 
 test-tap: ## Run bats tests with TAP output (useful for CI)
@@ -98,6 +99,6 @@ check-tools: ## Verify required tools are installed
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # vim: set noexpandtab tabstop=4 shiftwidth=4:
