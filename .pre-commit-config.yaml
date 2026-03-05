@@ -1,4 +1,4 @@
-default_install_hook_types: [pre-commit, pre-merge-commit, pre-push, pre-rebase]
+default_install_hook_types: [pre-commit, pre-merge-commit, pre-push, pre-rebase, commit-msg]
 fail_fast: true
 
 # See https://pre-commit.com/hooks.html for more hooks
@@ -59,6 +59,12 @@ repos:
 
 - repo: local
   hooks:
+    - id: conventional-commits
+      name: Conventional Commits
+      language: script
+      entry: scripts/check-commit-msg
+      stages: [commit-msg]
+
     - id: prevent-fixme
       name: 'prevent FIXME'
       language: pygrep
@@ -66,32 +72,25 @@ repos:
       types: [text]
       exclude: '.pre-commit-config.yaml'
 
-- repo: https://github.com/tomhoover/pre-commit-hooks
-  rev: 3.0.0
+- repo: local
   hooks:
-#    - id: bundler-audit
-    - id: check-mailmap
-#    - id: fasterer
-    - id: forbid-binary
-    - id: forbid-space-in-indent
-      files: 'Makefile'
-    - id: git-check     # Configure in .gitattributes
-#    - id: git-dirty    # Configure in .gitignore
-#    - id: markdownlint # Configure in .mdlrc
-#    - id: reek
-#    - id: require-ascii
-#    - id: rubocop
     - id: shellcheck
-    - id: shfmt
-      args: [ --apply-ignore ]
+      name: shellcheck
+      language: system
+      entry: shellcheck --shell=bash --severity=warning
+      types: [shell]
 
-  # google shell style guide:
-    # Libraries must have a .sh extension and should not be executable
-    - id: script-must-have-extension
-      types: [shell, non-executable]
-    # Executables should have no extension (strongly preferred)
-    - id: script-must-not-have-extension
-      types: [shell, executable]
+    - id: shfmt
+      name: shfmt
+      language: system
+      entry: shfmt -i 2 -d
+      types: [shell]
+
+    - id: forbid-space-in-indent
+      name: forbid space in indent (Makefile)
+      language: pygrep
+      entry: '^ '
+      files: 'Makefile'
 
 # python
 
