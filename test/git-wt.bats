@@ -91,14 +91,11 @@ setup() { #{{{
 
 # ── Add ───────────────────────────────────────────────────────────────────────
 
-@test "git wt add (no args uses current branch)" { #{{{
-  current_branch=$(git rev-parse --abbrev-ref HEAD)
-  # Current branch is always checked out, so the worktree add will fail —
-  # but the error must reference the current branch, proving it was used.
+@test "git wt add (no args shows error)" { #{{{
   run -1 git wt a
-  assert_line -e "^ERROR: Failed to create worktree for '${current_branch}'.*$"
+  assert_output -p "ERROR: 'add' requires a worktree name"
   run -1 git wt add
-  assert_line -e "^ERROR: Failed to create worktree for '${current_branch}'.*$"
+  assert_output -p "ERROR: 'add' requires a worktree name"
 } #}}}
 
 @test "git wt add HEAD (commit reference rejected)" { #{{{
@@ -108,15 +105,13 @@ setup() { #{{{
   assert_output -p "ERROR: Please provide a branch name, not a commit reference"
 } #}}}
 
-@test "git wt -d add (no args uses current branch, with debug)" { #{{{
-  current_branch=$(git rev-parse --abbrev-ref HEAD)
+@test "git wt -d add (no args shows error, with debug)" { #{{{
   run -1 git wt -d add
   # shellcheck disable=SC2016
   assert_output -p '+ shift
 + [[ 0 -ge 1 ]]
-++ git rev-parse --abbrev-ref HEAD'
-  assert_output -p "+ add_worktree ${current_branch}"
-  assert_line -e "^ERROR: Failed to create worktree for '${current_branch}'.*$"
++ missing_worktree_name add'
+  assert_output -p "ERROR: 'add' requires a worktree name"
 } #}}}
 
 @test "git wt -d add bats_xyz (create, then duplicate)" { #{{{
@@ -319,6 +314,11 @@ setup() { #{{{
 @test "git wt completion (missing shell)" { #{{{
   run -1 git wt completion
   assert_line -e "^ERROR: Unknown shell: ''.*$"
+} #}}}
+
+@test "git wt completion works outside a git repository" { #{{{
+  run -0 bash -c 'cd /tmp && git wt completion zsh'
+  assert_output -p '_git-wt()'
 } #}}}
 
 # ── Prune ─────────────────────────────────────────────────────────────────────

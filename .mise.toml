@@ -1,4 +1,7 @@
 [env]
+# _.file = '.env'
+_.path = "./src"
+
 # get python deprecation warnings
 # PYTHONDEVMODE=1
 
