@@ -20,8 +20,8 @@ _git-wt() {
 
   local -a commands
   commands=(
-    'add:create a worktree (defaults to current branch)'
-    'a:create a worktree (defaults to current branch)'
+    'add:create a worktree'
+    'a:create a worktree'
     'list:list worktrees'
     'ls:list worktrees'
     'l:list worktrees'
@@ -34,6 +34,7 @@ _git-wt() {
     'switch:print path to worktree (no arg = main worktree)'
     'sw:print path to worktree (no arg = main worktree)'
     's:print path to worktree (no arg = main worktree)'
+    'completion:output shell completion script'
     'version:print version'
     'v:print version'
   )
@@ -51,7 +52,7 @@ _git-wt() {
       _describe 'command' commands
       ;;
     argument)
-      case ${words[2]} in
+      case ${line[1]} in
         add | a)
           local -a branches
           branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
@@ -69,3 +70,46 @@ _git-wt() {
 }
 
 compdef _git-wt git-wt
+
+# Enable 'git wt <TAB>' completion.
+# git's _git completion calls _git_<subcmd> via: emulate ksh -c $completion_func
+# ksh emulation makes arrays 0-indexed, so 'emulate -L zsh' restores 1-indexed behaviour.
+#
+# __git_zsh_main restores orig_words but does NOT restore CURRENT. Two cases arise:
+#   CURRENT > $#words  — _arguments did not adjust it (virtual past-end position)
+#   CURRENT <= $#words — _arguments shifted the context by (i-1) words, so
+#                        effective position = i + CURRENT - 1  (where i = wt's index)
+_git_wt() {
+  emulate -L zsh
+  local -i i
+  for (( i=1; i<=$#words; i++ )); do
+    [[ "${words[i]}" == wt ]] && break
+  done
+  local -i ec
+  if (( CURRENT > $#words )); then
+    ec=$CURRENT
+  else
+    ec=$(( i + CURRENT - 1 ))
+  fi
+  if (( ec == i + 1 )); then
+    # Use compadd (not _describe) — _describe's tag context conflicts with _arguments ->arg
+    local -a subcmds=(add a list ls l remove rm r prune pr p switch sw s completion version v)
+    compadd -a subcmds
+  elif (( ec > i + 1 )); then
+    local subcmd='' k
+    for (( k=i+1; k<ec; k++ )); do
+      [[ "${words[k]}" != -* ]] && { subcmd="${words[k]}"; break; }
+    done
+    case "$subcmd" in
+      add | a)
+        local -a branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+        compadd -a branches
+        ;;
+      remove | rm | r | switch | sw | s)
+        local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
+          | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
+        compadd -a worktrees
+        ;;
+    esac
+  fi
+}
