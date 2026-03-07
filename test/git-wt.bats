@@ -49,7 +49,8 @@ setup() { #{{{
   assert_output -p 'l | ls | list'
   assert_output -p 'r | rm | remove'
   assert_output -p 'p | pr | prune'
-  assert_output -p 's | sw | switch'
+  assert_output -p 'c | cd'
+  assert_output -p 's | st | status'
   assert_output -p 'completion'
   assert_output -p 'init'
   assert_output -p 'v | version'
@@ -270,50 +271,46 @@ setup() { #{{{
   assert_line -e '^ERROR: Worktree .* not found$'
 } #}}}
 
-# ── Switch ────────────────────────────────────────────────────────────────────
+# ── Cd ────────────────────────────────────────────────────────────────────────
 
-@test "git wt switch (no args switches to main worktree)" { #{{{
+@test "git wt cd (no args prints main worktree)" { #{{{
   main_worktree=$(git worktree list --porcelain | awk 'NR==1{print $2}')
-  run -0 git wt s
+  run -0 git wt c
   assert_output "${main_worktree}"
-  run -0 git wt sw
-  assert_output "${main_worktree}"
-  run -0 git wt switch
+  run -0 git wt cd
   assert_output "${main_worktree}"
 } #}}}
 
-@test "git wt switch (worktree not found)" { #{{{
-  run -1 git wt switch nonexistent_worktree
+@test "git wt cd (worktree not found)" { #{{{
+  run -1 git wt cd nonexistent_worktree
   assert_line -e "^ERROR: Worktree '.*' not found$"
 } #}}}
 
-@test "git wt switch bats_xyz (prints path)" { #{{{
+@test "git wt cd bats_xyz (prints path)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
   run git wt add bats_xyz
 
-  run -0 git wt s bats_xyz
+  run -0 git wt c bats_xyz
   assert_output "$(pwd -P)+bats_xyz"
-  run -0 git wt sw bats_xyz
-  assert_output "$(pwd -P)+bats_xyz"
-  run -0 git wt switch bats_xyz
+  run -0 git wt cd bats_xyz
   assert_output "$(pwd -P)+bats_xyz"
 } #}}}
 
-@test "git wt switch (prefix match)" { #{{{
+@test "git wt cd (prefix match)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
   run git wt add bats_xyz
 
-  run -0 git wt switch bats_x
+  run -0 git wt cd bats_x
   assert_output "$(pwd -P)+bats_xyz"
-  run -0 git wt switch bats_xy
+  run -0 git wt cd bats_xy
   assert_output "$(pwd -P)+bats_xyz"
 } #}}}
 
-@test "git wt switch (ambiguous prefix)" { #{{{
+@test "git wt cd (ambiguous prefix)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git branch -D bats_xyz
@@ -321,10 +318,26 @@ setup() { #{{{
   run git wt add bats_xyz
   run git wt add bats_dirty
 
-  run -1 git wt switch bats
+  run -1 git wt cd bats
   assert_line -e "^ERROR: Ambiguous worktree 'bats'.*$"
   assert_output -p "bats_xyz"
   assert_output -p "bats_dirty"
+} #}}}
+
+# ── Status ────────────────────────────────────────────────────────────────────
+
+@test "git wt status (all aliases)" { #{{{
+  run -0 git wt s
+  assert_output -p "$(git worktree list --porcelain | awk 'NR==1{print $2}')"
+  run -0 git wt st
+  assert_output -p "$(git worktree list --porcelain | awk 'NR==1{print $2}')"
+  run -0 git wt status
+  assert_output -p "$(git worktree list --porcelain | awk 'NR==1{print $2}')"
+} #}}}
+
+@test "git wt status shows clean for main worktree" { #{{{
+  run -0 git wt status
+  assert_output -p "clean"
 } #}}}
 
 # ── Completion ────────────────────────────────────────────────────────────────
@@ -361,14 +374,14 @@ setup() { #{{{
 @test "git wt init bash" { #{{{
   run -0 git wt init bash
   assert_output -p 'wt()'
-  assert_output -p 'git wt switch'
+  assert_output -p 'git wt cd'
   assert_output -p 'git wt "$@"'
 } #}}}
 
 @test "git wt init zsh" { #{{{
   run -0 git wt init zsh
   assert_output -p 'wt()'
-  assert_output -p 'git wt switch'
+  assert_output -p 'git wt cd'
 } #}}}
 
 @test "git wt init (unknown shell)" { #{{{

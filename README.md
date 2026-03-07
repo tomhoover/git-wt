@@ -33,7 +33,8 @@ git wt [options] <command> [<worktree>]
 | `list` | `l`, `ls` | List all worktrees; highlights the current one |
 | `remove <branch>` | `r`, `rm` | Remove the worktree for `<branch>` |
 | `prune` | `p`, `pr` | Prune stale worktree references |
-| `switch [<branch>]` | `s`, `sw` | Print path to worktree; no arg = main worktree (use with `cd` — see below) |
+| `cd [<branch>]` | `c` | Print path to worktree; no arg = main worktree (use with `cd` — see below) |
+| `status` | `s`, `st` | Show git status across all worktrees |
 | `completion <shell>` | | Output shell completion script (`bash` or `zsh`) |
 | `init <shell>` | | Output shell integration `wt` function (`bash` or `zsh`) |
 | `version` | `v` | Print version |
@@ -55,29 +56,29 @@ git wt ls                 # list all worktrees
 git wt remove feature-x   # remove the worktree
 git wt -f remove feature-x  # force-remove a dirty worktree
 git wt prune              # prune stale entries
-cd "$(git wt switch feature-x)"  # cd into a worktree
-cd "$(git wt switch)"            # cd back to main worktree
-wt switch feature-x              # cd into a worktree (with init function, see below)
+cd "$(git wt cd feature-x)"      # cd into a worktree
+cd "$(git wt cd)"                # cd back to main worktree
+wt cd feature-x                  # cd into a worktree (with init function, see below)
 ```
 
-Because `switch` prints the path rather than changing directories (a subprocess cannot affect the parent shell), use `git wt init` to install a `wt` shell function:
+Because `cd` prints the path rather than changing directories (a subprocess cannot affect the parent shell), use `git wt init` to install a `wt` shell function:
 
 ```bash
 # Add to ~/.zshrc or ~/.bashrc
 eval "$(git wt init zsh)"   # or: eval "$(git wt init bash)"
 ```
 
-This defines a `wt` function that delegates to `git wt` for all commands, except `switch`/`sw`/`s` where it performs the `cd` in the current shell:
+This defines a `wt` function that delegates to `git wt` for all commands, except `cd`/`c` where it performs the directory change in the current shell:
 
 ```bash
 wt add feature-x      # same as: git wt add feature-x
-wt switch feature-x   # cd into the worktree (no subshell needed)
-wt sw                 # cd back to main worktree
+wt cd feature-x       # cd into the worktree (no subshell needed)
+wt cd                 # cd back to main worktree
 ```
 
 ## Shell integration
 
-Install a `wt` convenience function that wraps `git wt` and handles `cd` for `switch`:
+Install a `wt` convenience function that wraps `git wt` and handles `cd` in the current shell:
 
 ### Zsh
 
@@ -97,7 +98,7 @@ eval "$(git wt init bash)"
 
 ## Shell completion
 
-Completes commands, branch names (for `add`), and worktree names (for `remove` and `switch`).
+Completes commands, branch names (for `add`), and worktree names (for `remove` and `cd`).
 
 ### Zsh
 
