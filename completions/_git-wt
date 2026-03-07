@@ -35,6 +35,7 @@ _git-wt() {
     'sw:print path to worktree (no arg = main worktree)'
     's:print path to worktree (no arg = main worktree)'
     'completion:output shell completion script'
+    'init:output shell integration function (wt)'
     'version:print version'
     'v:print version'
   )
@@ -93,7 +94,7 @@ _git_wt() {
   fi
   if (( ec == i + 1 )); then
     # Use compadd (not _describe) — _describe's tag context conflicts with _arguments ->arg
-    local -a subcmds=(add a list ls l remove rm r prune pr p switch sw s completion version v)
+    local -a subcmds=(add a list ls l remove rm r prune pr p switch sw s completion init version v)
     compadd -a subcmds
   elif (( ec > i + 1 )); then
     local subcmd='' k
