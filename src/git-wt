@@ -242,13 +242,16 @@ add_worktree() { #{{{
     exit 1
   fi
   # Try checking out existing branch first, then create a new one
-  if ! git worktree add "${target}" "${branch}" 2>/dev/null; then
-    if ! git worktree add -b "${branch}" "${target}" 2>/dev/null; then
-      error "Failed to create worktree for '${branch}' — branch may already be checked out elsewhere"
-      exit 1
-    fi
+  local branch_note
+  if git worktree add "${target}" "${branch}" 2>/dev/null; then
+    branch_note="existing branch"
+  elif git worktree add -b "${branch}" "${target}" 2>/dev/null; then
+    branch_note="new branch"
+  else
+    error "Failed to create worktree for '${branch}' — branch may already be checked out elsewhere"
+    exit 1
   fi
-  echo "${GREEN}Worktree created at: ${target}${RESET}"
+  echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
   echo "    ${MAGENTA}cd '${target}'${RESET}"
 } #}}}
 
