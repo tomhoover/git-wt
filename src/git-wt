@@ -64,12 +64,49 @@ switch_worktree() { #{{{
     return
   fi
   local branch="${1}"
-  local target="${REPO_ROOT}+${branch}"
-  if ! git worktree list --porcelain | grep -Fq "worktree ${target}"; then
+  local main_root
+  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  local target="${main_root}+${branch}"
+
+  # Exact match
+  if git worktree list --porcelain | grep -Fxq "worktree ${target}"; then
+    echo "${target}"
+    return
+  fi
+
+  # Prefix match: match q against any +-delimited segment of each linked worktree's
+  # path suffix relative to the main repo root (e.g. "claude+testing" → segments
+  # "claude" and "testing"), so that both branch name and parent path components match.
+  # Uses index() rather than split(...,"+") to avoid BSD awk treating "+" as an ERE
+  # quantifier with no preceding atom.
+  local -a matches=()
+  while IFS= read -r match; do
+    matches+=("${match}")
+  done < <(git worktree list --porcelain \
+    | awk -v main="${main_root}" -v q="${branch}" '
+        /^worktree/ {
+          path = $2
+          if (path == main) next
+          base = main "+"
+          if (substr(path, 1, length(base)) != base) next
+          suffix = substr(path, length(base) + 1)
+          if (substr(suffix, 1, length(q)) == q || index(suffix, "+" q) > 0) print path
+        }
+      ')
+
+  local prefix="${main_root}+"
+  if [[ "${#matches[@]}" -eq 1 ]]; then
+    echo "${matches[0]}"
+  elif [[ "${#matches[@]}" -eq 0 ]]; then
     error "Worktree '${branch}' not found"
     exit 1
+  else
+    error "Ambiguous worktree '${branch}' — matches:"
+    for match in "${matches[@]}"; do
+      echo "  ${match#"${prefix}"}" >&2
+    done
+    exit 1
   fi
-  echo "${target}"
 } #}}}
 
 completion_bash() { #{{{
@@ -331,7 +368,7 @@ process_arguments() { #{{{
       r | rm | remove)
         shift
         if [[ "$#" -ge 1 ]]; then
-          if ! git worktree list --porcelain | grep -Fq "worktree ${REPO_ROOT}+${1}"; then
+          if ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
             error "Worktree '${1}' not found"
             exit 1
           else
