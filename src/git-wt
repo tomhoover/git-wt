@@ -7,7 +7,7 @@ set -eu -o pipefail
 
 FORCE=""
 VERBOSE=""
-VERSION="0.9.0"
+VERSION="0.10.0"
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
@@ -58,7 +58,7 @@ missing_worktree_name() { #{{{
 #     '
 # } #}}}
 
-switch_worktree() { #{{{
+cd_worktree() { #{{{
   if [[ "$#" -eq 0 ]]; then
     git worktree list --porcelain | awk 'NR==1{print $2}'
     return
@@ -113,7 +113,7 @@ init_bash() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    s | sw | switch) cd "$(git wt switch "${@:2}")" ;;
+    c | cd) cd "$(git wt cd "${@:2}")" ;;
     *)               git wt "$@" ;;
   esac
 }
@@ -124,7 +124,7 @@ init_zsh() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    s | sw | switch) cd "$(git wt switch "${@:2}")" ;;
+    c | cd) cd "$(git wt cd "${@:2}")" ;;
     *)               git wt "$@" ;;
   esac
 }
@@ -161,11 +161,11 @@ _git_wt() {
     add | a)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
       ;;
-    remove | rm | r | switch | sw | s)
+    remove | rm | r | cd | c)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_worktrees)" -- "$cur")
       ;;
     *)
-      local commands="add a list ls l remove rm r prune pr p switch sw s completion init version v"
+      local commands="add a list ls l remove rm r prune pr p cd c status st s completion init version v"
       mapfile -t COMPREPLY < <(compgen -W "$commands" -- "$cur")
       ;;
   esac
@@ -204,9 +204,11 @@ _git-wt() {
     'prune:prune stale worktree references'
     'pr:prune stale worktree references'
     'p:prune stale worktree references'
-    'switch:print path to worktree (no arg = main worktree)'
-    'sw:print path to worktree (no arg = main worktree)'
-    's:print path to worktree (no arg = main worktree)'
+    'cd:print path to worktree and cd into it (no arg = main worktree)'
+    'c:print path to worktree and cd into it (no arg = main worktree)'
+    'status:show git status across all worktrees'
+    'st:show git status across all worktrees'
+    's:show git status across all worktrees'
     'completion:output shell completion script'
     'init:output shell integration function (wt)'
     'version:print version'
@@ -232,7 +234,7 @@ _git-wt() {
           branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
           _describe 'branch' branches
           ;;
-        remove | rm | r | switch | sw | s)
+        remove | rm | r | cd | c)
           local -a worktrees
           worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
             | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
@@ -267,7 +269,7 @@ _git_wt() {
   fi
   if (( ec == i + 1 )); then
     # Use compadd (not _describe) — _describe's tag context conflicts with _arguments ->arg
-    local -a subcmds=(add a list ls l remove rm r prune pr p switch sw s completion init version v)
+    local -a subcmds=(add a list ls l remove rm r prune pr p cd c status st s completion init version v)
     compadd -a subcmds
   elif (( ec > i + 1 )); then
     local subcmd='' k
@@ -279,7 +281,7 @@ _git_wt() {
         local -a branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
         compadd -a branches
         ;;
-      remove | rm | r | switch | sw | s)
+      remove | rm | r | cd | c)
         local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
           | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
         compadd -a worktrees
@@ -288,6 +290,34 @@ _git_wt() {
   fi
 }
 EOF
+} #}}}
+
+status_worktrees() { #{{{
+  local main_root cur_path
+  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  cur_path=$(pwd -P)
+  local prefix="${main_root}+"
+
+  while IFS= read -r line; do
+    case "$line" in
+      worktree\ *) wt_path="${line#worktree }" ;;
+      branch\ *) wt_branch="${line#branch refs/heads/}" ;;
+      HEAD\ *) ;;
+      "")
+        local marker files
+        [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
+        files=$(git -C "${wt_path}" status --short 2>/dev/null | tr '\n' ' ' | sed 's/ $//')
+        [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
+        printf "%s ${BOLD}${GREEN}%s${RESET}  ${CYAN}[%s]${RESET}  %s\n" \
+          "${marker}" "${wt_path}" "${wt_branch:-detached}" "${files}"
+        wt_path=''
+        wt_branch=''
+        ;;
+    esac
+  done < <(
+    git worktree list --porcelain
+    echo
+  )
 } #}}}
 
 add_worktree() { #{{{
@@ -321,7 +351,7 @@ ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
        git wt -f [-d][-v] remove <worktree>     # the -f|--force flag is only useful for removing a dirty worktree
-       cd "\$(git wt switch <worktree>)"         # switch to a worktree (wrap in a shell function for convenience)
+       cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
         -h              ) help
@@ -334,7 +364,8 @@ Usage: git-wt [options] <command> [<worktree>]
         l | ls | list   ) list worktrees
         r | rm | remove ) the -f|--force flag is only useful for removing a dirty worktree
         p | pr | prune  ) prune worktrees
-        s | sw | switch ) print path to worktree; no arg = main worktree (use: cd "\$(git wt switch [<worktree>])")
+        c | cd          ) print path to worktree; no arg = main worktree (use: cd "\$(git wt cd [<worktree>])")
+        s | st | status ) show git status across all worktrees
         completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
         init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")
         v | version     ) display version
@@ -406,13 +437,17 @@ process_arguments() { #{{{
         fi
         break
         ;;
-      s | sw | switch)
+      c | cd)
         shift
         if [[ "$#" -ge 1 ]]; then
-          switch_worktree "${1}"
+          cd_worktree "${1}"
         else
-          switch_worktree
+          cd_worktree
         fi
+        break
+        ;;
+      s | st | status)
+        status_worktrees
         break
         ;;
       p | pr | prune)

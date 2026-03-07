@@ -36,11 +36,11 @@ _git_wt() {
     add | a)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
       ;;
-    remove | rm | r | switch | sw | s)
+    remove | rm | r | cd | c)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_worktrees)" -- "$cur")
       ;;
     *)
-      local commands="add a list ls l remove rm r prune pr p switch sw s completion init version v"
+      local commands="add a list ls l remove rm r prune pr p cd c status st s completion init version v"
       mapfile -t COMPREPLY < <(compgen -W "$commands" -- "$cur")
       ;;
   esac

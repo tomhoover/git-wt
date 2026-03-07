@@ -31,9 +31,11 @@ _git-wt() {
     'prune:prune stale worktree references'
     'pr:prune stale worktree references'
     'p:prune stale worktree references'
-    'switch:print path to worktree (no arg = main worktree)'
-    'sw:print path to worktree (no arg = main worktree)'
-    's:print path to worktree (no arg = main worktree)'
+    'cd:print path to worktree and cd into it (no arg = main worktree)'
+    'c:print path to worktree and cd into it (no arg = main worktree)'
+    'status:show git status across all worktrees'
+    'st:show git status across all worktrees'
+    's:show git status across all worktrees'
     'completion:output shell completion script'
     'init:output shell integration function (wt)'
     'version:print version'
@@ -59,7 +61,7 @@ _git-wt() {
           branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
           _describe 'branch' branches
           ;;
-        remove | rm | r | switch | sw | s)
+        remove | rm | r | cd | c)
           local -a worktrees
           worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
             | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
@@ -94,7 +96,7 @@ _git_wt() {
   fi
   if (( ec == i + 1 )); then
     # Use compadd (not _describe) — _describe's tag context conflicts with _arguments ->arg
-    local -a subcmds=(add a list ls l remove rm r prune pr p switch sw s completion init version v)
+    local -a subcmds=(add a list ls l remove rm r prune pr p cd c status st s completion init version v)
     compadd -a subcmds
   elif (( ec > i + 1 )); then
     local subcmd='' k
@@ -106,7 +108,7 @@ _git_wt() {
         local -a branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
         compadd -a branches
         ;;
-      remove | rm | r | switch | sw | s)
+      remove | rm | r | cd | c)
         local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
           | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
         compadd -a worktrees
