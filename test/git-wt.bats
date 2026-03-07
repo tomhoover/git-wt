@@ -50,6 +50,8 @@ setup() { #{{{
   assert_output -p 'r | rm | remove'
   assert_output -p 'p | pr | prune'
   assert_output -p 's | sw | switch'
+  assert_output -p 'completion'
+  assert_output -p 'init'
   assert_output -p 'v | version'
 } #}}}
 
@@ -352,6 +354,36 @@ setup() { #{{{
 @test "git wt completion works outside a git repository" { #{{{
   run -0 bash -c 'cd /tmp && git wt completion zsh'
   assert_output -p '_git-wt()'
+} #}}}
+
+# ── Init ──────────────────────────────────────────────────────────────────────
+
+@test "git wt init bash" { #{{{
+  run -0 git wt init bash
+  assert_output -p 'wt()'
+  assert_output -p 'git wt switch'
+  assert_output -p 'git wt "$@"'
+} #}}}
+
+@test "git wt init zsh" { #{{{
+  run -0 git wt init zsh
+  assert_output -p 'wt()'
+  assert_output -p 'git wt switch'
+} #}}}
+
+@test "git wt init (unknown shell)" { #{{{
+  run -1 git wt init fish
+  assert_line -e "^ERROR: Unknown shell: 'fish'.*$"
+} #}}}
+
+@test "git wt init (missing shell)" { #{{{
+  run -1 git wt init
+  assert_line -e "^ERROR: Unknown shell: ''.*$"
+} #}}}
+
+@test "git wt init works outside a git repository" { #{{{
+  run -0 bash -c 'cd /tmp && git wt init bash'
+  assert_output -p 'wt()'
 } #}}}
 
 # ── Prune ─────────────────────────────────────────────────────────────────────

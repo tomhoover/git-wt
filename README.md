@@ -35,6 +35,7 @@ git wt [options] <command> [<worktree>]
 | `prune` | `p`, `pr` | Prune stale worktree references |
 | `switch [<branch>]` | `s`, `sw` | Print path to worktree; no arg = main worktree (use with `cd` — see below) |
 | `completion <shell>` | | Output shell completion script (`bash` or `zsh`) |
+| `init <shell>` | | Output shell integration `wt` function (`bash` or `zsh`) |
 | `version` | `v` | Print version |
 
 ### Options
@@ -56,13 +57,42 @@ git wt -f remove feature-x  # force-remove a dirty worktree
 git wt prune              # prune stale entries
 cd "$(git wt switch feature-x)"  # cd into a worktree
 cd "$(git wt switch)"            # cd back to main worktree
+wt switch feature-x              # cd into a worktree (with init function, see below)
 ```
 
-Because `switch` prints the path rather than changing directories (a subprocess cannot affect the parent shell), wrap it in a shell function for convenience:
+Because `switch` prints the path rather than changing directories (a subprocess cannot affect the parent shell), use `git wt init` to install a `wt` shell function:
 
 ```bash
 # Add to ~/.zshrc or ~/.bashrc
-gws() { cd "$(git wt switch "$@")"; }
+eval "$(git wt init zsh)"   # or: eval "$(git wt init bash)"
+```
+
+This defines a `wt` function that delegates to `git wt` for all commands, except `switch`/`sw`/`s` where it performs the `cd` in the current shell:
+
+```bash
+wt add feature-x      # same as: git wt add feature-x
+wt switch feature-x   # cd into the worktree (no subshell needed)
+wt sw                 # cd back to main worktree
+```
+
+## Shell integration
+
+Install a `wt` convenience function that wraps `git wt` and handles `cd` for `switch`:
+
+### Zsh
+
+Add to `~/.zshrc`:
+
+```zsh
+eval "$(git wt init zsh)"
+```
+
+### Bash
+
+Add to `~/.bashrc`:
+
+```bash
+eval "$(git wt init bash)"
 ```
 
 ## Shell completion
