@@ -200,7 +200,7 @@ setup() { #{{{
   run -0 git wt -d remove bats_xyz
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree list --porcelain
-+ grep -Fq'
++ grep -Fxq'
 
   run -1 git wt -d remove bats_xyz
   assert_line -e '^ERROR: Worktree .* not found$'
@@ -257,7 +257,7 @@ setup() { #{{{
   run ! git wt -d remove bats_dirty
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree list --porcelain
-+ grep -Fq'
++ grep -Fxq'
 
   # With --force: should succeed
   run -0 git wt -f -d remove bats_dirty
@@ -296,6 +296,33 @@ setup() { #{{{
   assert_output "$(pwd -P)+bats_xyz"
   run -0 git wt switch bats_xyz
   assert_output "$(pwd -P)+bats_xyz"
+} #}}}
+
+@test "git wt switch (prefix match)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_dirty"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_dirty
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt switch bats_x
+  assert_output "$(pwd -P)+bats_xyz"
+  run -0 git wt switch bats_xy
+  assert_output "$(pwd -P)+bats_xyz"
+} #}}}
+
+@test "git wt switch (ambiguous prefix)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git worktree remove --force "$(pwd -P)+bats_dirty"
+  run git branch -D bats_xyz
+  run git branch -D bats_dirty
+  run git wt add bats_xyz
+  run git wt add bats_dirty
+
+  run -1 git wt switch bats
+  assert_line -e "^ERROR: Ambiguous worktree 'bats'.*$"
+  assert_output -p "bats_xyz"
+  assert_output -p "bats_dirty"
 } #}}}
 
 # ── Completion ────────────────────────────────────────────────────────────────
