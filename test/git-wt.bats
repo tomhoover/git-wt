@@ -154,7 +154,7 @@ setup() { #{{{
 @test "git wt list highlights current worktree" { #{{{
   escaped_pwd=$(printf '%s' "$(pwd -P)" | sed 's/[][\.*^$+(){}|]/\\&/g')
   run -0 git wt list
-  assert_line -e "^${escaped_pwd}.*$"
+  assert_line -e "^\* ${escaped_pwd}.*$"
 } #}}}
 
 @test "git wt -d list (with debug)" { #{{{

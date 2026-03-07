@@ -17,6 +17,7 @@ if [ -t 1 ]; then
   # BLUE=$(tput setaf 4)
   MAGENTA=$(tput setaf 5)
   CYAN=$(tput setaf 6)
+  BOLD=$(tput bold)
   RESET=$(tput sgr0)
 else
   RED=
@@ -25,6 +26,7 @@ else
   # BLUE=
   MAGENTA=
   CYAN=
+  BOLD=
   RESET=
 fi
 
@@ -310,8 +312,17 @@ process_arguments() { #{{{
         ;;
       l | ls | list)
         # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
-        escaped_pwd=$(printf '%s' "$(pwd -P)" | sed 's/[][\.*^$+(){}|]/\\&/g')
-        git worktree list | sed -e "s|^${escaped_pwd}.*$|${CYAN}&${RESET}|"
+        git worktree list | awk \
+          -v pwd="$(pwd -P)" \
+          -v bold="${BOLD}" \
+          -v green="${GREEN}" \
+          -v cyan="${CYAN}" \
+          -v reset="${RESET}" \
+          '{
+            rest = substr($0, length($1) + 1)
+            if ($1 == pwd) printf "* %s%s%s%s%s\n", bold, green, $1, reset, cyan rest reset
+            else           printf "  %s\n", $0
+          }'
         break
         ;;
       r | rm | remove)
