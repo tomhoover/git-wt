@@ -134,7 +134,13 @@ setup() { #{{{
   run -0 git wt add bats_xyz
   assert_line -e '^HEAD is now at .*$'
   assert_output -p "Worktree created at:"
+  assert_output -p "(new branch)"
   assert_output -p "cd '"
+
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run -0 git wt add bats_xyz
+  assert_output -p "Worktree created at:"
+  assert_output -p "(existing branch)"
 
   run -1 git wt add bats_xyz
   assert_line -e '^ERROR: Worktree .* already exists$'
