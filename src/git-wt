@@ -38,77 +38,6 @@ success() { #{{{
   echo "${GREEN}SUCCESS: ${1}${RESET}"
 } #}}}
 
-missing_worktree_name() { #{{{
-  error "'${1}' requires a worktree name"
-  usage
-  exit 1
-} #}}}
-
-# Disabled: requires awk; sed approach sufficient for now
-# list_worktrees() { #{{{
-#     git worktree list --porcelain | awk -v pwd="$(pwd -P)" -v green="$GREEN" \
-#         -v cyan="$CYAN" -v reset="$RESET" '
-#         /^worktree/ { path=$2 }
-#         /^HEAD/     { hash=substr($2,1,7) }
-#         /^branch/   { sub("refs/heads/",""); branch="["$2"]" }
-#         /^$/        {
-#             marker = (path == pwd) ? green "* " : "  "
-#             printf "%s%-50s %s  %s%s\n", marker, path, hash, cyan branch reset, reset
-#         }
-#     '
-# } #}}}
-
-cd_worktree() { #{{{
-  if [[ "$#" -eq 0 ]]; then
-    git worktree list --porcelain | awk 'NR==1{print $2}'
-    return
-  fi
-  local branch="${1}"
-  local main_root
-  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
-  local target="${main_root}+${branch}"
-
-  # Exact match
-  if git worktree list --porcelain | grep -Fxq "worktree ${target}"; then
-    echo "${target}"
-    return
-  fi
-
-  # Prefix match: match q against any +-delimited segment of each linked worktree's
-  # path suffix relative to the main repo root (e.g. "claude+testing" → segments
-  # "claude" and "testing"), so that both branch name and parent path components match.
-  # Uses index() rather than split(...,"+") to avoid BSD awk treating "+" as an ERE
-  # quantifier with no preceding atom.
-  local -a matches=()
-  while IFS= read -r match; do
-    matches+=("${match}")
-  done < <(git worktree list --porcelain \
-    | awk -v main="${main_root}" -v q="${branch}" '
-        /^worktree/ {
-          path = $2
-          if (path == main) next
-          base = main "+"
-          if (substr(path, 1, length(base)) != base) next
-          suffix = substr(path, length(base) + 1)
-          if (substr(suffix, 1, length(q)) == q || index(suffix, "+" q) > 0) print path
-        }
-      ')
-
-  local prefix="${main_root}+"
-  if [[ "${#matches[@]}" -eq 1 ]]; then
-    echo "${matches[0]}"
-  elif [[ "${#matches[@]}" -eq 0 ]]; then
-    error "Worktree '${branch}' not found"
-    exit 1
-  else
-    error "Ambiguous worktree '${branch}' — matches:"
-    for match in "${matches[@]}"; do
-      echo "  ${match#"${prefix}"}" >&2
-    done
-    exit 1
-  fi
-} #}}}
-
 init_bash() { #{{{
   cat <<'EOF'
 wt() {
@@ -320,6 +249,78 @@ status_worktrees() { #{{{
   )
 } #}}}
 
+cd_worktree() { #{{{
+  if [[ "$#" -eq 0 ]]; then
+    git worktree list --porcelain | awk 'NR==1{print $2}'
+    return
+  fi
+  local branch="${1}"
+  local main_root
+  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  local target="${main_root}+${branch}"
+
+  # Exact match
+  if git worktree list --porcelain | grep -Fxq "worktree ${target}"; then
+    echo "${target}"
+    return
+  fi
+
+  # Prefix match: match q against any +-delimited segment of each linked worktree's
+  # path suffix relative to the main repo root (e.g. "claude+testing" → segments
+  # "claude" and "testing"), so that both branch name and parent path components match.
+  # Uses index() rather than split(...,"+") to avoid BSD awk treating "+" as an ERE
+  # quantifier with no preceding atom.
+  local -a matches=()
+  while IFS= read -r match; do
+    matches+=("${match}")
+  done < <(git worktree list --porcelain \
+    | awk -v main="${main_root}" -v q="${branch}" '
+        /^worktree/ {
+          path = $2
+          if (path == main) next
+          base = main "+"
+          if (substr(path, 1, length(base)) != base) next
+          suffix = substr(path, length(base) + 1)
+          if (substr(suffix, 1, length(q)) == q || index(suffix, "+" q) > 0) print path
+        }
+      ')
+
+  local prefix="${main_root}+"
+  if [[ "${#matches[@]}" -eq 1 ]]; then
+    echo "${matches[0]}"
+  elif [[ "${#matches[@]}" -eq 0 ]]; then
+    error "Worktree '${branch}' not found"
+    exit 1
+  else
+    error "Ambiguous worktree '${branch}' — matches:"
+    for match in "${matches[@]}"; do
+      echo "  ${match#"${prefix}"}" >&2
+    done
+    exit 1
+  fi
+} #}}}
+
+list_worktrees() { #{{{
+  # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
+  git worktree list | awk \
+    -v pwd="$(pwd -P)" \
+    -v bold="${BOLD}" \
+    -v green="${GREEN}" \
+    -v cyan="${CYAN}" \
+    -v reset="${RESET}" \
+    '{
+            rest = substr($0, length($1) + 1)
+            if ($1 == pwd) printf "* %s%s%s%s%s\n", bold, green, $1, reset, cyan rest reset
+            else           printf "  %s\n", $0
+          }'
+} #}}}
+
+missing_worktree_name() { #{{{
+  error "'${1}' requires a worktree name"
+  usage
+  exit 1
+} #}}}
+
 add_worktree() { #{{{
   local branch="${1}"
   local target="${REPO_ROOT}+${branch}"
@@ -377,6 +378,7 @@ process_arguments() { #{{{
   # shopt -s nocasematch
   while [[ "$#" -ge 1 ]]; do
     case "${1}" in
+      # options #{{{
       -h)
         usage
         exit 0
@@ -396,7 +398,8 @@ process_arguments() { #{{{
         shift
         continue
         ;;
-      a | add)
+      # }}}
+      a | add) #{{{
         shift
         if [[ "$#" -ge 1 ]]; then
           add_worktree "${1}"
@@ -405,22 +408,13 @@ process_arguments() { #{{{
         fi
         break
         ;;
-      l | ls | list)
-        # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
-        git worktree list | awk \
-          -v pwd="$(pwd -P)" \
-          -v bold="${BOLD}" \
-          -v green="${GREEN}" \
-          -v cyan="${CYAN}" \
-          -v reset="${RESET}" \
-          '{
-            rest = substr($0, length($1) + 1)
-            if ($1 == pwd) printf "* %s%s%s%s%s\n", bold, green, $1, reset, cyan rest reset
-            else           printf "  %s\n", $0
-          }'
+      # }}}
+      l | ls | list) #{{{
+        list_worktrees
         break
         ;;
-      r | rm | remove)
+      # }}}
+      r | rm | remove) #{{{
         shift
         if [[ "$#" -ge 1 ]]; then
           if ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
@@ -437,7 +431,8 @@ process_arguments() { #{{{
         fi
         break
         ;;
-      c | cd)
+      # }}}
+      c | cd) #{{{
         shift
         if [[ "$#" -ge 1 ]]; then
           cd_worktree "${1}"
@@ -446,16 +441,19 @@ process_arguments() { #{{{
         fi
         break
         ;;
-      s | st | status)
+      # }}}
+      s | st | status) #{{{
         status_worktrees
         break
         ;;
-      p | pr | prune)
+      # }}}
+      p | pr | prune) #{{{
         git worktree prune ${VERBOSE:+-v}
         success "Prune complete"
         break
         ;;
-      completion)
+      # }}}
+      completion) #{{{
         shift
         case "${1:-}" in
           bash) completion_bash ;;
@@ -467,7 +465,8 @@ process_arguments() { #{{{
         esac
         break
         ;;
-      init)
+      # }}}
+      init) #{{{
         shift
         case "${1:-}" in
           bash) init_bash ;;
@@ -479,15 +478,18 @@ process_arguments() { #{{{
         esac
         break
         ;;
-      v | version)
+      # }}}
+      v | version) #{{{
         echo "git-wt version ${VERSION}"
         break
         ;;
-      *)
+      # }}}
+      *) #{{{
         error "Unknown argument: ${1}"
         usage
         exit 1
         ;;
+        # }}}
     esac
   done
 } #}}}
