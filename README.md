@@ -31,7 +31,7 @@ git wt [options] <command> [<worktree>]
 |---------|---------|-------------|
 | `add <branch>` | `a` | Create a worktree for `<branch>` (checks out existing or creates new) |
 | `list` | `l`, `ls` | List all worktrees; highlights the current one |
-| `remove <branch>` | `r`, `rm` | Remove the worktree for `<branch>` |
+| `remove [-f] <branch>` | `r`, `rm` | Remove the worktree for `<branch>`; use `-f` to force-remove a dirty worktree |
 | `prune` | `p`, `pr` | Prune stale worktree references |
 | `cd [<branch>]` | `c` | Print path to worktree; no arg = main worktree (use with `cd` — see below) |
 | `status` | `s`, `st` | Show git status across all worktrees |
@@ -45,7 +45,6 @@ git wt [options] <command> [<worktree>]
 |--------|-------------|
 | `-h` | Show help |
 | `-d`, `--debug` | Enable bash trace (`set -x`) |
-| `-f`, `--force` | Force removal of a dirty worktree |
 | `-v`, `--verbose` | Verbose output (passed to underlying git commands) |
 
 ### Examples
@@ -54,7 +53,7 @@ git wt [options] <command> [<worktree>]
 git wt add feature-x      # creates ../repo+feature-x
 git wt ls                 # list all worktrees
 git wt remove feature-x   # remove the worktree
-git wt -f remove feature-x  # force-remove a dirty worktree
+git wt remove -f feature-x  # force-remove a dirty worktree
 git wt prune              # prune stale entries
 cd "$(git wt cd feature-x)"      # cd into a worktree
 cd "$(git wt cd)"                # cd back to main worktree
