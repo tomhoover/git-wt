@@ -6,7 +6,8 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.11.0"
+VERSION="0.12.0"
+PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
@@ -41,8 +42,8 @@ init_bash() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    c | cd) cd "$(git wt cd "${@:2}")" ;;
-    *)               git wt "$@" ;;
+    c | cd) cd "$(GIT_WT_CALLER=wt git wt cd "${@:2}")" ;;
+    *)       GIT_WT_CALLER=wt git wt "$@" ;;
   esac
 }
 EOF
@@ -52,8 +53,8 @@ init_zsh() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    c | cd) cd "$(git wt cd "${@:2}")" ;;
-    *)               git wt "$@" ;;
+    c | cd) cd "$(GIT_WT_CALLER=wt git wt cd "${@:2}")" ;;
+    *)       GIT_WT_CALLER=wt git wt "$@" ;;
   esac
 }
 EOF
@@ -361,7 +362,30 @@ add_worktree() { #{{{
 } #}}}
 
 usage() { #{{{
-  cat <<EOF
+  if [[ "${PROG}" == "wt" ]]; then
+    cat <<EOF
+${CYAN}
+Usage: wt [options] <command> [<worktree>]
+
+    Options:
+        -h              ) help
+        -d | --debug    ) debugging info displayed
+        -v | --verbose  ) verbose
+
+    Commands:
+        a | add         ) add a worktree
+        l | ls | list   ) list worktrees
+        r | rm | remove ) [-f|--force] remove a worktree (use -f to force-remove a dirty worktree)
+        p | pr | prune  ) prune worktrees
+        c | cd          ) cd into worktree; no arg = main worktree (use: wt cd [<worktree>])
+        s | st | status ) show git status across all worktrees
+        completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
+        init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")
+        v | version     ) display version
+${RESET}
+EOF
+  else
+    cat <<EOF
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
@@ -385,6 +409,7 @@ Usage: git-wt [options] <command> [<worktree>]
         v | version     ) display version
 ${RESET}
 EOF
+  fi
 } #}}}
 
 process_arguments() { #{{{
