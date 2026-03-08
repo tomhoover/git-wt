@@ -366,6 +366,8 @@ usage() { #{{{
     cat <<EOF
 ${CYAN}
 Usage: wt [options] <command> [<worktree>]
+       wt [-d][-v] remove [-f|--force] <worktree>
+       wt cd [<worktree>]
 
     Options:
         -h              ) help
@@ -377,7 +379,7 @@ Usage: wt [options] <command> [<worktree>]
         l | ls | list   ) list worktrees
         r | rm | remove ) [-f|--force] remove a worktree (use -f to force-remove a dirty worktree)
         p | pr | prune  ) prune worktrees
-        c | cd          ) cd into worktree; no arg = main worktree (use: wt cd [<worktree>])
+        c | cd          ) cd into worktree; no arg = main worktree
         s | st | status ) show git status across all worktrees
         completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
         init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")
