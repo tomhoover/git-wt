@@ -1,0 +1,28 @@
+name: Conventional Commits
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  check-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit messages
+        run: |
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?(!)?: .+'
+          failed=0
+          while IFS= read -r msg; do
+            if ! echo "${msg}" | grep -qE "${pattern}"; then
+              echo "ERROR: commit message does not follow Conventional Commits format"
+              echo "  Expected: <type>[optional scope][optional !]: <description>"
+              echo "  Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+              echo "  Got: ${msg}"
+              failed=1
+            fi
+          done < <(git log --no-merges --format=%s origin/${{ github.base_ref }}..HEAD)
+          exit "${failed}"
