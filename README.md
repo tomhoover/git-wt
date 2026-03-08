@@ -119,3 +119,7 @@ eval "$(git wt completion bash)"
 ### Alternative: file-based install
 
 Standalone completion scripts are also available in `completions/` — see the comments at the top of each file for instructions.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
