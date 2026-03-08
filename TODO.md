@@ -2,5 +2,4 @@
   - add: from remote branch — detect and track remote branches automatically (e.g., git wt add origin/feature-x)
   - rename: — rename a worktree's branch and directory atomically
   - list: --short — show only branch names (no paths), useful for scripting
-  - remove: move -f|--force options to follow remove command, rather than precede it (as it's specific only to remove)
   - remove: add -d|-D|--delete|--Delete flags to also remove associated branch
