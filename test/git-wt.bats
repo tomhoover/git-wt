@@ -43,7 +43,7 @@ setup() { #{{{
   assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
   assert_output -p '-h'
   assert_output -p '-d | --debug'
-  assert_output -p '-f | --force'
+  assert_output -p 'r | rm | remove'
   assert_output -p '-v | --verbose'
   assert_output -p 'a | add         ) add a worktree'
   assert_output -p 'l | ls | list'
@@ -233,7 +233,7 @@ setup() { #{{{
   assert_line -e '^fatal: .* contains modified or untracked files, use --force to delete it$'
 } #}}}
 
-@test "git wt -f remove bats_dirty (dirty worktree, with force)" { #{{{
+@test "git wt remove -f bats_dirty (dirty worktree, with force)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git branch -D bats_dirty
   run git wt add bats_dirty
@@ -241,14 +241,14 @@ setup() { #{{{
 
   echo "make dirty" >>"$(pwd -P)+bats_dirty/src/git-wt"
 
-  run -0 git wt -f remove bats_dirty
+  run -0 git wt remove -f bats_dirty
   assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
 
-  run -1 git wt -f remove bats_dirty
+  run -1 git wt remove -f bats_dirty
   assert_line -e '^ERROR: Worktree .* not found$'
 } #}}}
 
-@test "git wt -f -d remove bats_dirty (dirty worktree, force + debug)" { #{{{
+@test "git wt -d remove -f bats_dirty (dirty worktree, force + debug)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git branch -D bats_dirty
   run git wt add bats_dirty
@@ -263,11 +263,11 @@ setup() { #{{{
 + grep -Fxq'
 
   # With --force: should succeed
-  run -0 git wt -f -d remove bats_dirty
+  run -0 git wt -d remove -f bats_dirty
   assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
 
   # Already removed: should fail
-  run -1 git wt -f -d remove bats_dirty
+  run -1 git wt -d remove -f bats_dirty
   assert_line -e '^ERROR: Worktree .* not found$'
 } #}}}
 

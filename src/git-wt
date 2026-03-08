@@ -5,9 +5,8 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-FORCE=""
 VERBOSE=""
-VERSION="0.10.0"
+VERSION="0.11.0"
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
@@ -79,10 +78,10 @@ _git_wt() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
   # Determine the subcommand index:
-  #   'git wt <cmd>' → index 2
-  #   'git-wt <cmd>' → index 1
+  #   'git wt <cmd>' or 'g wt <cmd>' → index 2
+  #   'git-wt <cmd>'                 → index 1
   local subcmd_index=1
-  [[ "${COMP_WORDS[0]}" == "git" ]] && subcmd_index=2
+  [[ "${COMP_WORDS[1]:-}" == "wt" ]] && subcmd_index=2
 
   local subcmd="${COMP_WORDS[$subcmd_index]:-}"
 
@@ -90,7 +89,10 @@ _git_wt() {
     add | a)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
       ;;
-    remove | rm | r | cd | c)
+    remove | rm | r)
+      mapfile -t COMPREPLY < <(compgen -W "-f --force $(_git_wt_worktrees)" -- "$cur")
+      ;;
+    cd | c)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_worktrees)" -- "$cur")
       ;;
     *)
@@ -147,7 +149,6 @@ _git-wt() {
   _arguments -C \
     '(-h)-h[show help]' \
     '(-d --debug)'{-d,--debug}'[enable bash trace (set -x)]' \
-    '(-f --force)'{-f,--force}'[force removal of dirty worktree]' \
     '(-v --verbose)'{-v,--verbose}'[verbose output]' \
     '1:command:->command' \
     '*:argument:->argument'
@@ -163,7 +164,13 @@ _git-wt() {
           branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
           _describe 'branch' branches
           ;;
-        remove | rm | r | cd | c)
+        remove | rm | r)
+          _arguments \
+            '(-f --force)'{-f,--force}'[force removal of dirty worktree]' \
+            '*:worktree:(${(f)"$(git worktree list --porcelain 2>/dev/null \
+              | awk '"'"'/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}'"'"')"})'
+          ;;
+        cd | c)
           local -a worktrees
           worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
             | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
@@ -210,7 +217,14 @@ _git_wt() {
         local -a branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
         compadd -a branches
         ;;
-      remove | rm | r | cd | c)
+      remove | rm | r)
+        local -a opts=(-f --force)
+        local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
+          | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
+        compadd -a opts
+        compadd -a worktrees
+        ;;
+      cd | c)
         local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
           | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
         compadd -a worktrees
@@ -351,19 +365,18 @@ usage() { #{{{
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
-       git wt -f [-d][-v] remove <worktree>     # the -f|--force flag is only useful for removing a dirty worktree
+       git wt [-d][-v] remove [-f|--force] <worktree>
        cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
         -h              ) help
         -d | --debug    ) debugging info displayed
-        -f | --force    ) force removal of dirty worktree
         -v | --verbose  ) verbose
 
     Commands:
         a | add         ) add a worktree
         l | ls | list   ) list worktrees
-        r | rm | remove ) the -f|--force flag is only useful for removing a dirty worktree
+        r | rm | remove ) [-f|--force] remove a worktree (use -f to force-remove a dirty worktree)
         p | pr | prune  ) prune worktrees
         c | cd          ) print path to worktree; no arg = main worktree (use: cd "\$(git wt cd [<worktree>])")
         s | st | status ) show git status across all worktrees
@@ -385,11 +398,6 @@ process_arguments() { #{{{
         ;;
       -d | --debug)
         set -x
-        shift
-        continue
-        ;;
-      -f | --force)
-        FORCE=true
         shift
         continue
         ;;
@@ -416,14 +424,19 @@ process_arguments() { #{{{
       # }}}
       r | rm | remove) #{{{
         shift
+        local force=""
+        [[ "${1:-}" == "-f" || "${1:-}" == "--force" ]] && {
+          force=true
+          shift
+        }
         if [[ "$#" -ge 1 ]]; then
           if ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
             error "Worktree '${1}' not found"
             exit 1
           else
-            # ${FORCE:+-f} intentionally unquoted — empty expansion must pass no argument
+            # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
             # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
-            git worktree remove ${FORCE:+-f} "${REPO_ROOT}+${1}"
+            git worktree remove ${force:+-f} "${REPO_ROOT}+${1}"
             success "Worktree '${1}' removed successfully"
           fi
         else

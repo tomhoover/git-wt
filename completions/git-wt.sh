@@ -25,10 +25,10 @@ _git_wt() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
 
   # Determine the subcommand index:
-  #   'git wt <cmd>' → index 2
-  #   'git-wt <cmd>' → index 1
+  #   'git wt <cmd>' or 'g wt <cmd>' → index 2
+  #   'git-wt <cmd>'                 → index 1
   local subcmd_index=1
-  [[ "${COMP_WORDS[0]}" == "git" ]] && subcmd_index=2
+  [[ "${COMP_WORDS[1]:-}" == "wt" ]] && subcmd_index=2
 
   local subcmd="${COMP_WORDS[$subcmd_index]:-}"
 
@@ -36,7 +36,10 @@ _git_wt() {
     add | a)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
       ;;
-    remove | rm | r | cd | c)
+    remove | rm | r)
+      mapfile -t COMPREPLY < <(compgen -W "-f --force $(_git_wt_worktrees)" -- "$cur")
+      ;;
+    cd | c)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_worktrees)" -- "$cur")
       ;;
     *)
