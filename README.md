@@ -22,7 +22,7 @@ Because the script is named `git-wt`, git automatically exposes it as the `git w
 ## Usage
 
 ```
-git wt [options] <command> [<worktree>]
+git wt [options] <command> [<command_options>] [<worktree>]
 ```
 
 ### Commands
@@ -31,7 +31,7 @@ git wt [options] <command> [<worktree>]
 |---------|---------|-------------|
 | `add <branch>` | `a` | Create a worktree for `<branch>` (checks out existing or creates new) |
 | `list` | `l`, `ls` | List all worktrees; highlights the current one |
-| `remove [-f] <branch>` | `r`, `rm` | Remove the worktree for `<branch>`; use `-f` to force-remove a dirty worktree |
+| `remove [-f|--force] <branch>` | `r`, `rm` | Remove the worktree for `<branch>`; use `-f|--force` to force-remove a dirty worktree |
 | `prune` | `p`, `pr` | Prune stale worktree references |
 | `cd [<branch>]` | `c` | Print path to worktree; no arg = main worktree (use with `cd` — see below) |
 | `status` | `s`, `st` | Show git status across all worktrees |
