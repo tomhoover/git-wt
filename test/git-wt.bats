@@ -374,14 +374,14 @@ setup() { #{{{
 @test "git wt init bash" { #{{{
   run -0 git wt init bash
   assert_output -p 'wt()'
-  assert_output -p 'git wt cd'
-  assert_output -p 'git wt "$@"'
+  assert_output -p 'GIT_WT_CALLER=wt git wt cd'
+  assert_output -p 'GIT_WT_CALLER=wt git wt "$@"'
 } #}}}
 
 @test "git wt init zsh" { #{{{
   run -0 git wt init zsh
   assert_output -p 'wt()'
-  assert_output -p 'git wt cd'
+  assert_output -p 'GIT_WT_CALLER=wt git wt cd'
 } #}}}
 
 @test "git wt init (unknown shell)" { #{{{
