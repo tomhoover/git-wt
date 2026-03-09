@@ -11,6 +11,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Ensure HEAD is on a named branch
+        run: git symbolic-ref HEAD || git checkout -b ci-branch
+
       - uses: jdx/mise-action@v2
 
       - name: Install bats dependencies
