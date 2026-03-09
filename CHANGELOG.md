@@ -4,7 +4,40 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-## Unreleased changes
+## v0.18.0 (2026-03-09)
+
+### Refactor
+- remove VERBOSE flag; prune always runs with -v [`40751db`](https://github.com/tomhoover/git-wt/commit/40751db)
+
+## v0.17.0 (2026-03-09)
+
+### Bug Fixes
+- remove -d shorthand for --debug to resolve collision with --delete-branch [`e2b2892`](https://github.com/tomhoover/git-wt/commit/e2b2892)
+
+## v0.16.5 (2026-03-09)
+
+### Test
+- add bats_remote defensive cleanup to teardown_file [`3409e2b`](https://github.com/tomhoover/git-wt/commit/3409e2b)
+
+## v0.16.4 (2026-03-09)
+
+### Refactor
+- extract _git_wt_worktree_branches helper in zsh completion [`e709ea6`](https://github.com/tomhoover/git-wt/commit/e709ea6)
+
+## v0.16.3 (2026-03-09)
+
+### Chore
+- bump version to 0.16.3 [`cb762c6`](https://github.com/tomhoover/git-wt/commit/cb762c6)
+
+## v0.16.2 (2026-03-09)
+
+### Documentation
+- :robot: changelog file generated [`55f59bf`](https://github.com/tomhoover/git-wt/commit/55f59bf)
+
+### Chore
+- bump version to 0.16.2 [`bc31d3e`](https://github.com/tomhoover/git-wt/commit/bc31d3e)
+
+## v0.16.1 (2026-03-09)
 
 ### Continuous Integration
 - Generate Changelog based on Conventional Commits [`2b3b059`](https://github.com/tomhoover/git-wt/commit/2b3b059)
@@ -18,6 +51,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Feature
 - fzf integration for wt cd [`c821a0f`](https://github.com/tomhoover/git-wt/commit/c821a0f)
+
+## v0.14.0 (2026-03-09)
+
+### Feature
 - add 'cd <TAB>' completion for wt alias [`6efd1ba`](https://github.com/tomhoover/git-wt/commit/6efd1ba)
 
 ### Continuous Integration
@@ -42,7 +79,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Feature
 - add a 'dirty' indicator to the 'list' command [`cdb3d67`](https://github.com/tomhoover/git-wt/commit/cdb3d67)
-- show wt-aware usage when called via wrapper function [`38e9fe6`](https://github.com/tomhoover/git-wt/commit/38e9fe6)
 
 ### Bug Fixes
 - exclude merge commits from conventional commit check [`a03a0da`](https://github.com/tomhoover/git-wt/commit/a03a0da)
@@ -50,11 +86,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Continuous Integration
 - add GitHub Actions workflow to enforce conventional commits [`71b6f6e`](https://github.com/tomhoover/git-wt/commit/71b6f6e)
 
+### Other
+- Merge pull request #2 from tomhoover/claude [`6c51e2f`](https://github.com/tomhoover/git-wt/commit/6c51e2f)
+
+## v0.12.1 (2026-03-08)
+
 ### Documentation
 - add additional examples to 'Usage' [`c18b09d`](https://github.com/tomhoover/git-wt/commit/c18b09d)
 
+## v0.12.0 (2026-03-08)
+
+### Feature
+- show wt-aware usage when called via wrapper function [`38e9fe6`](https://github.com/tomhoover/git-wt/commit/38e9fe6)
+
 ### Other
-- Merge pull request #2 from tomhoover/claude [`6c51e2f`](https://github.com/tomhoover/git-wt/commit/6c51e2f)
 - Merge pull request #1 from tomhoover/tomhoover-patch-1 [`e96924e`](https://github.com/tomhoover/git-wt/commit/e96924e)
 - Update README.md [`81f9137`](https://github.com/tomhoover/git-wt/commit/81f9137)
 
@@ -171,3 +216,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Other
 - MVP [`afe2701`](https://github.com/tomhoover/git-wt/commit/afe2701)
 - Initial commit [`62ed334`](https://github.com/tomhoover/git-wt/commit/62ed334)
+
