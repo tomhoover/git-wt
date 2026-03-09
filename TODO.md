@@ -1,5 +1,3 @@
-  - switch: with fzf — when called with no args (or ambiguous prefix), pipe worktrees through fzf for interactive selection
-  - add: from remote branch — detect and track remote branches automatically (e.g., git wt add origin/feature-x)
-  - rename: — rename a worktree's branch and directory atomically
   - list: --short — show only branch names (no paths), useful for scripting
-  - remove: add -d|-D|--delete|--Delete flags to also remove associated branch
+  - rename: — rename a worktree's branch and directory atomically
+  5. git wt add <branch> [<name>] — allow an optional second argument to override the directory suffix (useful when branch names are long or contain slashes like feature/foo)

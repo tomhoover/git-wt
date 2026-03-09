@@ -43,11 +43,12 @@ setup() { #{{{
   assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
   assert_output -p '-h'
   assert_output -p '-d | --debug'
-  assert_output -p 'r | rm | remove'
   assert_output -p '-v | --verbose'
   assert_output -p 'a | add         ) add a worktree'
   assert_output -p 'l | ls | list'
   assert_output -p 'r | rm | remove'
+  assert_output -p '--force'
+  assert_output -p '--delete-branch'
   assert_output -p 'p | pr | prune'
   assert_output -p 'c | cd'
   assert_output -p 's | st | status'
@@ -217,6 +218,11 @@ setup() { #{{{
   assert_output -p "ERROR: 'remove' requires a worktree name"
 } #}}}
 
+@test "git wt remove (unknown option)" { #{{{
+  run -1 git wt remove --bogus bats_xyz
+  assert_line -e "^ERROR: Unknown option '--bogus'$"
+} #}}}
+
 @test "git wt remove (worktree not found)" { #{{{
   run -1 git wt remove nonexistent_worktree
   assert_line -e '^ERROR: Worktree .* not found$'
@@ -281,6 +287,43 @@ setup() { #{{{
 
   run -1 git wt remove -f bats_dirty
   assert_line -e '^ERROR: Worktree .* not found$'
+} #}}}
+
+@test "git wt remove -d bats_xyz (delete branch after remove)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt remove -d bats_xyz
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+  assert_line -e "^SUCCESS: Branch '.*' deleted$"
+
+  run git branch --list bats_xyz
+  assert_output ""
+} #}}}
+
+@test "git wt remove --delete-branch bats_xyz (long flag)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt remove --delete-branch bats_xyz
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+  assert_line -e "^SUCCESS: Branch '.*' deleted$"
+} #}}}
+
+@test "git wt remove -f -d bats_dirty (force + delete-branch)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_dirty"
+  run git branch -D bats_dirty
+  run git wt add bats_dirty
+  echo "make dirty" >>"$(pwd -P)+bats_dirty/src/git-wt"
+
+  run -0 git wt remove -f -d bats_dirty
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+  assert_line -e "^SUCCESS: Branch '.*' deleted$"
+
+  run git branch --list bats_dirty
+  assert_output ""
 } #}}}
 
 @test "git wt -d remove -f bats_dirty (dirty worktree, force + debug)" { #{{{
@@ -453,12 +496,14 @@ setup() { #{{{
   run -0 git wt completion bash
   assert_output -p '_git_wt()'
   assert_output -p 'complete -F _git_wt git-wt'
+  assert_output -p '--delete-branch'
 } #}}}
 
 @test "git wt completion zsh" { #{{{
   run -0 git wt completion zsh
   assert_output -p '_git-wt()'
   assert_output -p 'compdef _git-wt git-wt'
+  assert_output -p '--delete-branch'
 } #}}}
 
 @test "git wt completion (unknown shell)" { #{{{
