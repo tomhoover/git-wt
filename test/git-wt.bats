@@ -365,6 +365,55 @@ setup() { #{{{
   assert_output "${main_worktree}"
 } #}}}
 
+@test "git wt cd (no args invokes fzf when linked worktrees exist)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  # fake fzf: select whichever candidate contains "bats_xyz"
+  fake_fzf=$(mktemp)
+  printf '#!/bin/sh\ngrep "bats_xyz"\n' >"${fake_fzf}"
+  chmod +x "${fake_fzf}"
+
+  run -0 env GIT_WT_FZF="${fake_fzf}" git wt cd
+  assert_output "$(pwd -P)+bats_xyz"
+
+  rm -f "${fake_fzf}"
+} #}}}
+
+@test "git wt cd (fzf cancelled returns non-zero)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  fake_fzf=$(mktemp)
+  printf '#!/bin/sh\nexit 130\n' >"${fake_fzf}"
+  chmod +x "${fake_fzf}"
+
+  run -1 env GIT_WT_FZF="${fake_fzf}" git wt cd
+
+  rm -f "${fake_fzf}"
+} #}}}
+
+@test "git wt cd (ambiguous prefix invokes fzf)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git worktree remove --force "$(pwd -P)+bats_dirty"
+  run git branch -D bats_xyz
+  run git branch -D bats_dirty
+  run git wt add bats_xyz
+  run git wt add bats_dirty
+
+  # fake fzf: always select bats_xyz
+  fake_fzf=$(mktemp)
+  printf '#!/bin/sh\ngrep "bats_xyz"\n' >"${fake_fzf}"
+  chmod +x "${fake_fzf}"
+
+  run -0 env GIT_WT_FZF="${fake_fzf}" git wt cd bats
+  assert_output "$(pwd -P)+bats_xyz"
+
+  rm -f "${fake_fzf}"
+} #}}}
+
 # ── Status ────────────────────────────────────────────────────────────────────
 
 @test "git wt status (all aliases)" { #{{{
