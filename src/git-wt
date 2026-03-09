@@ -6,7 +6,7 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.16.5"
+VERSION="0.17.0"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -144,7 +144,7 @@ _git-wt() {
 
   _arguments -C \
     '(-h)-h[show help]' \
-    '(-d --debug)'{-d,--debug}'[enable bash trace (set -x)]' \
+    '--debug[enable bash trace (set -x)]' \
     '(-v --verbose)'{-v,--verbose}'[verbose output]' \
     '1:command:->command' \
     '*:argument:->argument'
@@ -390,12 +390,12 @@ usage() { #{{{
     cat <<EOF
 ${CYAN}
 Usage: wt [options] <command> [<worktree>]
-       wt [-d][-v] remove [-f|--force] [-d|--delete-branch] <worktree>
+       wt [--debug][-v] remove [-f|--force] [-d|--delete-branch] <worktree>
        wt cd [<worktree>]
 
     Options:
         -h              ) help
-        -d | --debug    ) debugging info displayed
+        --debug         ) debugging info displayed
         -v | --verbose  ) verbose
 
     Commands:
@@ -415,12 +415,12 @@ EOF
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
-       git wt [-d][-v] remove [-f|--force] [-d|--delete-branch] <worktree>
+       git wt [--debug][-v] remove [-f|--force] [-d|--delete-branch] <worktree>
        cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
         -h              ) help
-        -d | --debug    ) debugging info displayed
+        --debug         ) debugging info displayed
         -v | --verbose  ) verbose
 
     Commands:
@@ -447,7 +447,7 @@ process_arguments() { #{{{
         usage
         exit 0
         ;;
-      -d | --debug)
+      --debug)
         set -x
         shift
         continue
