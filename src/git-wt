@@ -6,7 +6,7 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.15.0"
+VERSION="0.16.0"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -91,7 +91,7 @@ _git_wt() {
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
       ;;
     remove | rm | r)
-      mapfile -t COMPREPLY < <(compgen -W "-f --force $(_git_wt_worktrees)" -- "$cur")
+      mapfile -t COMPREPLY < <(compgen -W "-f --force -d --delete-branch $(_git_wt_worktrees)" -- "$cur")
       ;;
     cd | c)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_worktrees)" -- "$cur")
@@ -169,6 +169,7 @@ _git-wt() {
         remove | rm | r)
           _arguments \
             '(-f --force)'{-f,--force}'[force removal of dirty worktree]' \
+            '(-d --delete-branch)'{-d,--delete-branch}'[delete branch after removing worktree]' \
             '*:worktree:(${(f)"$(git worktree list --porcelain 2>/dev/null \
               | awk '"'"'/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}'"'"')"})'
           ;;
@@ -220,7 +221,7 @@ _git_wt() {
         compadd -a branches
         ;;
       remove | rm | r)
-        local -a opts=(-f --force)
+        local -a opts=(-f --force -d --delete-branch)
         local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
           | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
         compadd -a opts
@@ -400,7 +401,7 @@ usage() { #{{{
     cat <<EOF
 ${CYAN}
 Usage: wt [options] <command> [<worktree>]
-       wt [-d][-v] remove [-f|--force] <worktree>
+       wt [-d][-v] remove [-f|--force] [-d|--delete-branch] <worktree>
        wt cd [<worktree>]
 
     Options:
@@ -411,7 +412,7 @@ Usage: wt [options] <command> [<worktree>]
     Commands:
         a | add         ) add a worktree
         l | ls | list   ) list worktrees (appends a '${RED}!${CYAN}' to indicate a dirty worktree)
-        r | rm | remove ) [-f|--force] remove a worktree (use -f to force-remove a dirty worktree)
+        r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
         c | cd          ) cd into worktree; no arg = main worktree
         s | st | status ) show git status across all worktrees
@@ -425,7 +426,7 @@ EOF
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
-       git wt [-d][-v] remove [-f|--force] <worktree>
+       git wt [-d][-v] remove [-f|--force] [-d|--delete-branch] <worktree>
        cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
@@ -436,7 +437,7 @@ Usage: git-wt [options] <command> [<worktree>]
     Commands:
         a | add         ) add a worktree
         l | ls | list   ) list worktrees (appends a '${RED}!${CYAN}' to indicate a dirty worktree)
-        r | rm | remove ) [-f|--force] remove a worktree (use -f to force-remove a dirty worktree)
+        r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
         c | cd          ) print path to worktree; no arg = main worktree (use: cd "\$(git wt cd [<worktree>])")
         s | st | status ) show git status across all worktrees
@@ -485,20 +486,35 @@ process_arguments() { #{{{
       # }}}
       r | rm | remove) #{{{
         shift
-        local force=""
-        [[ "${1:-}" == "-f" || "${1:-}" == "--force" ]] && {
-          force=true
+        local force="" delete_branch=""
+        while [[ "${1:-}" == -* ]]; do
+          case "${1}" in
+            -f | --force) force=true ;;
+            -d | --delete-branch) delete_branch=true ;;
+            *)
+              error "Unknown option '${1}'"
+              exit 1
+              ;;
+          esac
           shift
-        }
+        done
         if [[ "$#" -ge 1 ]]; then
           if ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
             error "Worktree '${1}' not found"
             exit 1
           else
+            local branch=""
+            branch=$(git worktree list --porcelain \
+              | awk -v p="${REPO_ROOT}+${1}" \
+                '$0=="worktree "p{f=1} f && /^branch/{sub("refs/heads/",""); print $2; exit}')
             # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
             # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
             git worktree remove ${force:+-f} "${REPO_ROOT}+${1}"
             success "Worktree '${1}' removed successfully"
+            if [[ -n "${delete_branch}" && -n "${branch}" ]]; then
+              git branch -d "${branch}"
+              success "Branch '${branch}' deleted"
+            fi
           fi
         else
           missing_worktree_name "remove"
