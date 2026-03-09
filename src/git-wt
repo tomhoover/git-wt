@@ -6,7 +6,7 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.13.0"
+VERSION="0.15.0"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -267,15 +267,39 @@ status_worktrees() { #{{{
   )
 } #}}}
 
+_fzf_select_worktree() { #{{{
+  local fzf_cmd="${1}"
+  shift
+  printf '%s\n' "$@" | "${fzf_cmd}" --height=40% --reverse --no-sort || return 1
+} #}}}
+
 cd_worktree() { #{{{
-  if [[ "$#" -eq 0 ]]; then
-    git worktree list --porcelain | awk 'NR==1{print $2}'
-    return
-  fi
-  local branch="${1}"
   local main_root
   main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
-  local target="${main_root}+${branch}"
+  local prefix="${main_root}+"
+
+  # Resolve fzf: GIT_WT_FZF overrides auto-detection (useful for testing)
+  local fzf_bin=''
+  if [[ -n "${GIT_WT_FZF:-}" ]]; then
+    fzf_bin="${GIT_WT_FZF}"
+  elif command -v fzf &>/dev/null && [[ -t 2 ]]; then
+    fzf_bin="fzf"
+  fi
+
+  if [[ "$#" -eq 0 ]]; then
+    local -a all=()
+    while IFS= read -r p; do all+=("${p}"); done \
+      < <(git worktree list --porcelain | awk '/^worktree/{print $2}')
+    if [[ "${#all[@]}" -le 1 ]] || [[ -z "${fzf_bin}" ]]; then
+      echo "${main_root}"
+    else
+      _fzf_select_worktree "${fzf_bin}" "${all[@]}" || exit 1
+    fi
+    return
+  fi
+
+  local branch="${1}"
+  local target="${prefix}${branch}"
 
   # Exact match
   if git worktree list --porcelain | grep -Fxq "worktree ${target}"; then
@@ -303,12 +327,13 @@ cd_worktree() { #{{{
         }
       ')
 
-  local prefix="${main_root}+"
   if [[ "${#matches[@]}" -eq 1 ]]; then
     echo "${matches[0]}"
   elif [[ "${#matches[@]}" -eq 0 ]]; then
     error "Worktree '${branch}' not found"
     exit 1
+  elif [[ -n "${fzf_bin}" ]]; then
+    _fzf_select_worktree "${fzf_bin}" "${matches[@]}" || exit 1
   else
     error "Ambiguous worktree '${branch}' — matches:"
     for match in "${matches[@]}"; do
