@@ -5,15 +5,13 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.18.2"
+VERSION="0.18.3"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
   RED=$(tput setaf 1)
   GREEN=$(tput setaf 2)
-  # YELLOW=$(tput setaf 3)
-  # BLUE=$(tput setaf 4)
   MAGENTA=$(tput setaf 5)
   CYAN=$(tput setaf 6)
   BOLD=$(tput bold)
@@ -21,8 +19,6 @@ if [ -t 1 ]; then
 else
   RED=
   GREEN=
-  # YELLOW=
-  # BLUE=
   MAGENTA=
   CYAN=
   BOLD=
@@ -233,6 +229,7 @@ status_worktrees() { #{{{
   main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
   cur_path=$(pwd -P)
 
+  local wt_path='' wt_branch=''
   while IFS= read -r line; do
     case "$line" in
       worktree\ *) wt_path="${line#worktree }" ;;
@@ -376,7 +373,7 @@ add_worktree() { #{{{
   elif git worktree add -b "${branch}" "${target}" 2>/dev/null; then
     branch_note="new branch"
   else
-    error "Failed to create worktree for '${branch}' — branch may already be checked out elsewhere"
+    error "Failed to create worktree for '${branch}'"
     exit 1
   fi
   echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
@@ -435,7 +432,6 @@ EOF
 } #}}}
 
 process_arguments() { #{{{
-  # shopt -s nocasematch
   while [[ "$#" -ge 1 ]]; do
     case "${1}" in
       # options #{{{
@@ -479,22 +475,21 @@ process_arguments() { #{{{
           shift
         done
         if [[ "$#" -ge 1 ]]; then
-          if ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
+          local branch=""
+          branch=$(git worktree list --porcelain \
+            | awk -v p="${REPO_ROOT}+${1}" \
+              '$0=="worktree "p{f=1} f && /^branch/{sub("refs/heads/",""); print $2; exit}')
+          if [[ -z "${branch}" ]] && ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
             error "Worktree '${1}' not found"
             exit 1
-          else
-            local branch=""
-            branch=$(git worktree list --porcelain \
-              | awk -v p="${REPO_ROOT}+${1}" \
-                '$0=="worktree "p{f=1} f && /^branch/{sub("refs/heads/",""); print $2; exit}')
-            # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
-            # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
-            git worktree remove ${force:+-f} "${REPO_ROOT}+${1}"
-            success "Worktree '${1}' removed successfully"
-            if [[ -n "${delete_branch}" && -n "${branch}" ]]; then
-              git branch -d "${branch}"
-              success "Branch '${branch}' deleted"
-            fi
+          fi
+          # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
+          # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
+          git worktree remove ${force:+-f} "${REPO_ROOT}+${1}"
+          success "Worktree '${1}' removed successfully"
+          if [[ -n "${delete_branch}" && -n "${branch}" ]]; then
+            git branch -d "${branch}"
+            success "Branch '${branch}' deleted"
           fi
         else
           missing_worktree_name "remove"
@@ -539,8 +534,7 @@ process_arguments() { #{{{
       init) #{{{
         shift
         case "${1:-}" in
-          bash) init_shell ;;
-          zsh) init_shell ;;
+          bash | zsh) init_shell ;;
           *)
             error "Unknown shell: '${1:-}'. Supported: bash, zsh"
             exit 1
