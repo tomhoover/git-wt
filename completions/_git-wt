@@ -128,3 +128,5 @@ _git_wt() {
     esac
   fi
 }
+
+compdef _git_wt wt

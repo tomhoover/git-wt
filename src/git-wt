@@ -104,6 +104,7 @@ _git_wt() {
 }
 
 complete -F _git_wt git-wt
+complete -F _git_wt wt
 
 # Register for 'git wt' if git's __git_complete helper is available
 if declare -f __git_complete >/dev/null 2>&1; then
@@ -233,6 +234,8 @@ _git_wt() {
     esac
   fi
 }
+
+compdef _git_wt wt
 EOF
 } #}}}
 
