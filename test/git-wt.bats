@@ -340,6 +340,23 @@ setup() { #{{{
   assert_output -p "clean"
 } #}}}
 
+@test "git wt status highlights current worktree" { #{{{
+  escaped_pwd=$(printf '%s' "$(pwd -P)" | sed 's/[][\\.*^$+(){}|]/\\&/g')
+  run -0 git wt status
+  assert_line -e "^\* ${escaped_pwd}.*$"
+} #}}}
+
+@test "git wt status shows dirty worktree" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+  echo "make dirty" >>"$(pwd -P)+bats_xyz/src/git-wt"
+
+  run -0 git wt status
+  assert_output -p "$(pwd -P)+bats_xyz"
+  assert_output -p " M src/git-wt"
+} #}}}
+
 # ── Completion ────────────────────────────────────────────────────────────────
 
 @test "git wt completion bash" { #{{{
