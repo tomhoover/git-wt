@@ -6,7 +6,7 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.16.2"
+VERSION="0.16.3"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -38,18 +38,7 @@ success() { #{{{
   echo "${GREEN}SUCCESS: ${1}${RESET}"
 } #}}}
 
-init_bash() { #{{{
-  cat <<'EOF'
-wt() {
-  case "${1:-}" in
-    c | cd) cd "$(GIT_WT_CALLER=wt git wt cd "${@:2}")" ;;
-    *)       GIT_WT_CALLER=wt git wt "$@" ;;
-  esac
-}
-EOF
-} #}}}
-
-init_zsh() { #{{{
+init_shell() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
@@ -558,8 +547,8 @@ process_arguments() { #{{{
       init) #{{{
         shift
         case "${1:-}" in
-          bash) init_bash ;;
-          zsh) init_zsh ;;
+          bash) init_shell ;;
+          zsh) init_shell ;;
           *)
             error "Unknown shell: '${1:-}'. Supported: bash, zsh"
             exit 1
