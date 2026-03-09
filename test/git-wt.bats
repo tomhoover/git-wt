@@ -10,8 +10,11 @@ teardown_file() { #{{{
   echo "Cleaning up environment"
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git worktree remove --force "$(pwd -P)+bats_remote"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
+  run git branch -D bats_remote
+  run git update-ref -d refs/remotes/origin/bats_remote
   run git worktree prune
 } #}}}
 
