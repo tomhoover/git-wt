@@ -6,7 +6,7 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.16.4"
+VERSION="0.16.5"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
