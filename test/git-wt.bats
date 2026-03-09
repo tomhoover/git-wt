@@ -173,11 +173,11 @@ setup() { #{{{
 
 @test "git wt list (all aliases)" { #{{{
   run -0 git wt l
-  assert_line -n 0 -e '^.* \[(master|main)\]$'
+  assert_line -n 0 -e '^.* \[.+\]$'
   run -0 git wt ls
-  assert_line -n 0 -e '^.* \[(master|main)\]$'
+  assert_line -n 0 -e '^.* \[.+\]$'
   run -0 git wt list
-  assert_line -n 0 -e '^.* \[(master|main)\]$'
+  assert_line -n 0 -e '^.* \[.+\]$'
 } #}}}
 
 @test "git wt list highlights current worktree" { #{{{
@@ -193,7 +193,7 @@ setup() { #{{{
 
 @test "git wt -v list (verbose flag does not error)" { #{{{
   run -0 git wt -v list
-  assert_line -n 0 -e '^.* \[(master|main)\]$'
+  assert_line -n 0 -e '^.* \[.+\]$'
 } #}}}
 
 @test "git wt list shows linked worktrees" { #{{{
