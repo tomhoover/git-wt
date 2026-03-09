@@ -45,7 +45,7 @@ setup() { #{{{
   run -0 git wt -h
   assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
   assert_output -p '-h'
-  assert_output -p '-d | --debug'
+  assert_output -p '--debug'
   assert_output -p '-v | --verbose'
   assert_output -p 'a | add         ) add a worktree'
   assert_output -p 'l | ls | list'
@@ -84,15 +84,15 @@ setup() { #{{{
 
 # ── Debug flag ────────────────────────────────────────────────────────────────
 
-@test "git wt -d (no command) shows trace then usage" { #{{{
-  run -0 git wt -d
+@test "git wt --debug (no command) shows trace then usage" { #{{{
+  run -0 git wt --debug
   assert_output -p '+ shift
 + continue
 + [[ 0 -ge 1 ]]'
 } #}}}
 
-@test "git wt -d abcxyz (unknown argument, with debug)" { #{{{
-  run -1 git wt -d abcxyz
+@test "git wt --debug abcxyz (unknown argument, with debug)" { #{{{
+  run -1 git wt --debug abcxyz
   # shellcheck disable=SC2016
   assert_output -p '+ shift
 + continue
@@ -118,8 +118,8 @@ setup() { #{{{
   assert_output -p "ERROR: Please provide a branch name, not a commit reference"
 } #}}}
 
-@test "git wt -d add (no args shows error, with debug)" { #{{{
-  run -1 git wt -d add
+@test "git wt --debug add (no args shows error, with debug)" { #{{{
+  run -1 git wt --debug add
   # shellcheck disable=SC2016
   assert_output -p '+ shift
 + [[ 0 -ge 1 ]]
@@ -127,16 +127,16 @@ setup() { #{{{
   assert_output -p "ERROR: 'add' requires a worktree name"
 } #}}}
 
-@test "git wt -d add bats_xyz (create, then duplicate)" { #{{{
+@test "git wt --debug add bats_xyz (create, then duplicate)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
 
-  run -0 git wt -d add bats_xyz
+  run -0 git wt --debug add bats_xyz
   # shellcheck disable=SC2016
   assert_output -p '+ add_worktree bats_xyz'
   assert_line -e '^HEAD is now at .*$'
 
-  run -1 git wt -d add bats_xyz
+  run -1 git wt --debug add bats_xyz
   assert_line -e '^ERROR: Worktree .* already exists$'
 } #}}}
 
@@ -190,8 +190,8 @@ setup() { #{{{
   assert_line -e "^\* ${escaped_pwd}.*$"
 } #}}}
 
-@test "git wt -d list (with debug)" { #{{{
-  run -0 git wt -d list
+@test "git wt --debug list (with debug)" { #{{{
+  run -0 git wt --debug list
   assert_output -p '+ git worktree list'
 } #}}}
 
@@ -231,25 +231,25 @@ setup() { #{{{
   assert_line -e '^ERROR: Worktree .* not found$'
 } #}}}
 
-@test "git wt -d remove (missing name, with debug)" { #{{{
-  run -1 git wt -d remove
+@test "git wt --debug remove (missing name, with debug)" { #{{{
+  run -1 git wt --debug remove
   # shellcheck disable=SC2016
   assert_output -p '+ missing_worktree_name remove
 + error'
   assert_output -p "ERROR: 'remove' requires a worktree name"
 } #}}}
 
-@test "git wt -d remove bats_xyz (remove, then remove again)" { #{{{
+@test "git wt --debug remove bats_xyz (remove, then remove again)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
   run git wt add bats_xyz
 
-  run -0 git wt -d remove bats_xyz
+  run -0 git wt --debug remove bats_xyz
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree list --porcelain
 + grep -Fxq'
 
-  run -1 git wt -d remove bats_xyz
+  run -1 git wt --debug remove bats_xyz
   assert_line -e '^ERROR: Worktree .* not found$'
 } #}}}
 
@@ -329,7 +329,7 @@ setup() { #{{{
   assert_output ""
 } #}}}
 
-@test "git wt -d remove -f bats_dirty (dirty worktree, force + debug)" { #{{{
+@test "git wt --debug remove -f bats_dirty (dirty worktree, force + debug)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git branch -D bats_dirty
   run git wt add bats_dirty
@@ -338,17 +338,17 @@ setup() { #{{{
   echo "make dirty" >>"$(pwd -P)+bats_dirty/src/git-wt"
 
   # Without --force on a dirty worktree: should fail
-  run ! git wt -d remove bats_dirty
+  run ! git wt --debug remove bats_dirty
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree list --porcelain
 + grep -Fxq'
 
   # With --force: should succeed
-  run -0 git wt -d remove -f bats_dirty
+  run -0 git wt --debug remove -f bats_dirty
   assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
 
   # Already removed: should fail
-  run -1 git wt -d remove -f bats_dirty
+  run -1 git wt --debug remove -f bats_dirty
   assert_line -e '^ERROR: Worktree .* not found$'
 } #}}}
 
@@ -567,14 +567,14 @@ setup() { #{{{
 } #}}}
 
 @test "git wt -v prune (verbose flag passed to git)" { #{{{
-  run -0 git wt -v -d prune
+  run -0 git wt -v --debug prune
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree prune -v'
   assert_output -p "Prune complete"
 } #}}}
 
-@test "git wt -d prune (with debug)" { #{{{
-  run -0 git wt -d prune
+@test "git wt --debug prune (with debug)" { #{{{
+  run -0 git wt --debug prune
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree prune'
   refute_output -p '+ git worktree prune -v'
