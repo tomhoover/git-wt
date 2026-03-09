@@ -1,3 +1,3 @@
   - list: --short — show only branch names (no paths), useful for scripting
   - rename: — rename a worktree's branch and directory atomically
-  5. git wt add <branch> [<name>] — allow an optional second argument to override the directory suffix (useful when branch names are long or contain slashes like feature/foo)
+  - git wt add <branch> [<name>] — allow an optional second argument to override the directory suffix (useful when branch names are long or contain slashes like feature/foo)

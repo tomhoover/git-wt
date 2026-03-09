@@ -81,7 +81,7 @@ repos:
     - id: forbid-binary
     - id: forbid-space-in-indent
       files: 'Makefile'
-    - id: git-check     # Configure in .gitattributes
+#    - id: git-check     # Configure in .gitattributes
 #    - id: git-dirty    # Configure in .gitignore
 #    - id: markdownlint # Configure in .mdlrc
 #    - id: reek

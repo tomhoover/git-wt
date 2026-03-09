@@ -44,8 +44,7 @@ git wt [options] <command> [<command_options>] [<worktree>]
 | Option | Description |
 |--------|-------------|
 | `-h` | Show help |
-| `-d`, `--debug` | Enable bash trace (`set -x`) |
-| `-v`, `--verbose` | Verbose output (passed to underlying git commands) |
+| `--debug` | Enable bash trace (`set -x`) |
 
 ### Examples
 
