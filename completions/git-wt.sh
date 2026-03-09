@@ -37,7 +37,7 @@ _git_wt() {
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
       ;;
     remove | rm | r)
-      mapfile -t COMPREPLY < <(compgen -W "-f --force $(_git_wt_worktrees)" -- "$cur")
+      mapfile -t COMPREPLY < <(compgen -W "-f --force -d --delete-branch $(_git_wt_worktrees)" -- "$cur")
       ;;
     cd | c)
       mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_worktrees)" -- "$cur")
