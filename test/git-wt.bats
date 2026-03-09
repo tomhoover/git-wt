@@ -65,6 +65,12 @@ setup() { #{{{
   assert_output -p 'git-wt version'
 } #}}}
 
+@test "git wt version matches VERSION in script" { #{{{
+  script_version=$(grep '^VERSION=' "$DIR/../src/git-wt" | cut -d'"' -f2)
+  run -0 git wt version
+  assert_output "git-wt version ${script_version}"
+} #}}}
+
 # ── Unknown argument ──────────────────────────────────────────────────────────
 
 @test "git wt abcxyz (unknown argument)" { #{{{
@@ -149,6 +155,20 @@ setup() { #{{{
   assert_line -e '^ERROR: Worktree .* already exists$'
 } #}}}
 
+@test "git wt add from remote-only branch (DWIM)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_remote"
+  run git branch -D bats_remote
+  git update-ref refs/remotes/origin/bats_remote "$(git rev-parse HEAD)"
+
+  run -0 git wt add bats_remote
+  assert_output -p "Worktree created at:"
+  assert_output -p "$(pwd -P)+bats_remote"
+
+  git update-ref -d refs/remotes/origin/bats_remote
+  run git worktree remove --force "$(pwd -P)+bats_remote"
+  run git branch -D bats_remote
+} #}}}
+
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @test "git wt list (all aliases)" { #{{{
@@ -169,6 +189,21 @@ setup() { #{{{
 @test "git wt -d list (with debug)" { #{{{
   run -0 git wt -d list
   assert_output -p '+ git worktree list'
+} #}}}
+
+@test "git wt -v list (verbose flag does not error)" { #{{{
+  run -0 git wt -v list
+  assert_line -n 0 -e '^.* \[(master|main)\]$'
+} #}}}
+
+@test "git wt list shows linked worktrees" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run -0 git wt add bats_xyz
+
+  run -0 git wt list
+  assert_output -p "$(pwd -P)+bats_xyz"
+  assert_output -p "[bats_xyz]"
 } #}}}
 
 # ── Remove ────────────────────────────────────────────────────────────────────
@@ -322,6 +357,12 @@ setup() { #{{{
   assert_line -e "^ERROR: Ambiguous worktree 'bats'.*$"
   assert_output -p "bats_xyz"
   assert_output -p "bats_dirty"
+} #}}}
+
+@test "git wt -v cd (verbose flag does not error)" { #{{{
+  main_worktree=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  run -0 git wt -v cd
+  assert_output "${main_worktree}"
 } #}}}
 
 # ── Status ────────────────────────────────────────────────────────────────────
