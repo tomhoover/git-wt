@@ -171,4 +171,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Other
 - MVP [`afe2701`](https://github.com/tomhoover/git-wt/commit/afe2701)
 - Initial commit [`62ed334`](https://github.com/tomhoover/git-wt/commit/62ed334)
-

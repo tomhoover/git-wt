@@ -6,7 +6,7 @@
 set -eu -o pipefail
 
 VERBOSE=""
-VERSION="0.16.0"
+VERSION="0.16.2"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -244,7 +244,6 @@ status_worktrees() { #{{{
   local main_root cur_path
   main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
   cur_path=$(pwd -P)
-  local prefix="${main_root}+"
 
   while IFS= read -r line; do
     case "$line" in
