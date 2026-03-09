@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.18.3"
+VERSION="0.18.4"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -229,16 +229,16 @@ status_worktrees() { #{{{
   main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
   cur_path=$(pwd -P)
 
-  local wt_path='' wt_branch=''
+  local wt_path='' wt_branch='' marker='' files=''
   while IFS= read -r line; do
     case "$line" in
       worktree\ *) wt_path="${line#worktree }" ;;
       branch\ *) wt_branch="${line#branch refs/heads/}" ;;
       HEAD\ *) ;;
       "")
-        local marker files
         [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
-        files=$(git -C "${wt_path}" status --short 2>/dev/null | tr '\n' ' ' | sed 's/ $//')
+        files=$(git -C "${wt_path}" status --short 2>/dev/null | tr '\n' ' ')
+        files="${files% }"
         [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
         printf "%s ${BOLD}${GREEN}%s${RESET}  ${CYAN}[%s]${RESET}  %s\n" \
           "${marker}" "${wt_path}" "${wt_branch:-detached}" "${files}"
@@ -367,12 +367,14 @@ add_worktree() { #{{{
     exit 1
   fi
   # Try checking out existing branch first, then create a new one
-  local branch_note
+  local branch_note git_out
   if git worktree add "${target}" "${branch}" 2>/dev/null; then
     branch_note="existing branch"
-  elif git worktree add -b "${branch}" "${target}" 2>/dev/null; then
+  elif git_out=$(git worktree add -b "${branch}" "${target}" 2>&1); then
     branch_note="new branch"
+    echo "${git_out}"
   else
+    echo "${git_out}" >&2
     error "Failed to create worktree for '${branch}'"
     exit 1
   fi
