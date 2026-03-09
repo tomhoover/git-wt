@@ -46,7 +46,7 @@ setup() { #{{{
   assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
   assert_output -p '-h'
   assert_output -p '--debug'
-  assert_output -p '-v | --verbose'
+
   assert_output -p 'a | add         ) add a worktree'
   assert_output -p 'l | ls | list'
   assert_output -p 'r | rm | remove'
@@ -193,11 +193,6 @@ setup() { #{{{
 @test "git wt --debug list (with debug)" { #{{{
   run -0 git wt --debug list
   assert_output -p '+ git worktree list'
-} #}}}
-
-@test "git wt -v list (verbose flag does not error)" { #{{{
-  run -0 git wt -v list
-  assert_line -n 0 -e '^.* \[.+\]$'
 } #}}}
 
 @test "git wt list shows linked worktrees" { #{{{
@@ -405,12 +400,6 @@ setup() { #{{{
   assert_output -p "bats_dirty"
 } #}}}
 
-@test "git wt -v cd (verbose flag does not error)" { #{{{
-  main_worktree=$(git worktree list --porcelain | awk 'NR==1{print $2}')
-  run -0 git wt -v cd
-  assert_output "${main_worktree}"
-} #}}}
-
 @test "git wt cd (no args invokes fzf when linked worktrees exist)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
@@ -566,18 +555,11 @@ setup() { #{{{
   assert_success
 } #}}}
 
-@test "git wt -v prune (verbose flag passed to git)" { #{{{
-  run -0 git wt -v --debug prune
+@test "git wt prune always passes -v to git" { #{{{
+  run -0 git wt --debug prune
   # shellcheck disable=SC2016
   assert_output -p '+ git worktree prune -v'
   assert_output -p "Prune complete"
-} #}}}
-
-@test "git wt --debug prune (with debug)" { #{{{
-  run -0 git wt --debug prune
-  # shellcheck disable=SC2016
-  assert_output -p '+ git worktree prune'
-  refute_output -p '+ git worktree prune -v'
 } #}}}
 
 # vim: set tw=100 expandtab tabstop=2 shiftwidth=2 fdm=marker commentstring=#%s:
