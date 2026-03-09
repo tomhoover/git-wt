@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.18.4"
+VERSION="0.18.5"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -225,8 +225,7 @@ EOF
 } #}}}
 
 status_worktrees() { #{{{
-  local main_root cur_path
-  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  local cur_path
   cur_path=$(pwd -P)
 
   local wt_path='' wt_branch='' marker='' files=''
@@ -259,10 +258,6 @@ _fzf_select_worktree() { #{{{
 } #}}}
 
 cd_worktree() { #{{{
-  local main_root
-  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
-  local prefix="${main_root}+"
-
   # Resolve fzf: GIT_WT_FZF overrides auto-detection (useful for testing)
   local fzf_bin=''
   if [[ -n "${GIT_WT_FZF:-}" ]]; then
@@ -275,6 +270,7 @@ cd_worktree() { #{{{
     local -a all=()
     while IFS= read -r p; do all+=("${p}"); done \
       < <(git worktree list --porcelain | awk '/^worktree/{print $2}')
+    local main_root="${all[0]}"
     if [[ "${#all[@]}" -le 1 ]] || [[ -z "${fzf_bin}" ]]; then
       echo "${main_root}"
     else
@@ -282,6 +278,10 @@ cd_worktree() { #{{{
     fi
     return
   fi
+
+  local main_root
+  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  local prefix="${main_root}+"
 
   local branch="${1}"
   local target="${prefix}${branch}"
@@ -332,8 +332,8 @@ list_worktrees() { #{{{
   # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
   local cur_path
   cur_path=$(pwd -P)
+  local path='' rest='' dirty=''
   while IFS= read -r line; do
-    local path rest dirty
     path="${line%% *}"
     rest="${line#"${path}"}"
     if [[ -n "$(git -C "${path}" status --short 2>/dev/null)" ]]; then
