@@ -14,6 +14,11 @@
 #     fpath=(~/.zsh/completions $fpath)
 #   Then rebuild: rm -f ~/.zcompdump && compinit
 
+_git_wt_worktree_branches() {
+  git worktree list --porcelain 2>/dev/null \
+    | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}'
+}
+
 _git-wt() {
   local curcontext="$curcontext" state line
   typeset -A opt_args
@@ -44,8 +49,7 @@ _git-wt() {
 
   _arguments -C \
     '(-h)-h[show help]' \
-    '(-d --debug)'{-d,--debug}'[enable bash trace (set -x)]' \
-    '(-v --verbose)'{-v,--verbose}'[verbose output]' \
+    '--debug[enable bash trace (set -x)]' \
     '1:command:->command' \
     '*:argument:->argument'
 
@@ -63,13 +67,12 @@ _git-wt() {
         remove | rm | r)
           _arguments \
             '(-f --force)'{-f,--force}'[force removal of dirty worktree]' \
-            '*:worktree:(${(f)"$(git worktree list --porcelain 2>/dev/null \
-              | awk '"'"'/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}'"'"')"})'
+            '(-d --delete-branch)'{-d,--delete-branch}'[delete branch after removing worktree]' \
+            '*:worktree:(${(f)"$(_git_wt_worktree_branches)"})'
           ;;
         cd | c)
           local -a worktrees
-          worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
-            | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
+          worktrees=(${(f)"$(_git_wt_worktree_branches)"})
           _describe 'worktree' worktrees
           ;;
       esac
@@ -114,15 +117,13 @@ _git_wt() {
         compadd -a branches
         ;;
       remove | rm | r)
-        local -a opts=(-f --force)
-        local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
-          | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
+        local -a opts=(-f --force -d --delete-branch)
+        local -a worktrees=(${(f)"$(_git_wt_worktree_branches)"})
         compadd -a opts
         compadd -a worktrees
         ;;
       cd | c)
-        local -a worktrees=(${(f)"$(git worktree list --porcelain 2>/dev/null \
-          | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}')"})
+        local -a worktrees=(${(f)"$(_git_wt_worktree_branches)"})
         compadd -a worktrees
         ;;
     esac

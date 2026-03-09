@@ -12,6 +12,8 @@ A lightweight `git worktree` wrapper that enforces a consistent naming conventio
 
 Copy (or symlink) `src/git-wt` to a directory on your `PATH`:
 
+**Optional:** Install [fzf](https://github.com/junegunn/fzf) to enable interactive fuzzy selection when `cd` finds multiple matching worktrees.
+
 ```bash
 cp src/git-wt ~/.local/bin/git-wt
 chmod +x ~/.local/bin/git-wt
