@@ -241,8 +241,7 @@ setup() { #{{{
 
   run -0 git wt --debug remove bats_xyz
   # shellcheck disable=SC2016
-  assert_output -p '+ git worktree list --porcelain
-+ grep -Fxq'
+  assert_output -p '++ git worktree list --porcelain'
 
   run -1 git wt --debug remove bats_xyz
   assert_line -e '^ERROR: Worktree .* not found$'
@@ -335,8 +334,7 @@ setup() { #{{{
   # Without --force on a dirty worktree: should fail
   run ! git wt --debug remove bats_dirty
   # shellcheck disable=SC2016
-  assert_output -p '+ git worktree list --porcelain
-+ grep -Fxq'
+  assert_output -p '++ git worktree list --porcelain'
 
   # With --force: should succeed
   run -0 git wt --debug remove -f bats_dirty
