@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.20.2"
+VERSION="0.20.3"
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
@@ -530,15 +530,23 @@ process_arguments() { #{{{
           shift
         done
         if [[ "$#" -ge 1 ]]; then
+          local wt_name="${1}"
+          shift
+          for arg in "$@"; do
+            if [[ "${arg}" == -* ]]; then
+              error "Flags must come before the worktree name: '${arg}'"
+              exit 1
+            fi
+          done
           local wt_path branch=""
-          wt_path=$(cd_worktree "${1}")
+          wt_path=$(cd_worktree "${wt_name}")
           branch=$(git worktree list --porcelain \
             | awk -v p="${wt_path}" \
               '$0=="worktree "p{f=1; next} f && /^$/{exit} f && /^branch/{sub("refs/heads/",""); print $2; exit}')
           # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
           # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
           git worktree remove ${force:+-f} "${wt_path}"
-          success "Worktree '${1}' removed successfully"
+          success "Worktree '${wt_name}' removed successfully"
           if [[ -n "${delete_branch}" ]]; then
             if [[ -n "${branch}" ]]; then
               git branch -d "${branch}"
