@@ -425,6 +425,31 @@ setup() { #{{{
   assert_output -p "bats_dirty"
 } #}}}
 
+@test "git wt remove bats_ns/bats_xyz (slash branch)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git branch -D bats_ns/bats_xyz
+  run git wt add bats_ns/bats_xyz
+
+  run -0 git wt remove bats_ns/bats_xyz
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+
+  run git branch --list bats_ns/bats_xyz
+  assert_output -p "bats_ns/bats_xyz"
+} #}}}
+
+@test "git wt remove -d bats_ns/bats_xyz (slash branch + delete-branch)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git branch -D bats_ns/bats_xyz
+  run git wt add bats_ns/bats_xyz
+
+  run -0 git wt remove -d bats_ns/bats_xyz
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+  assert_line -e "^SUCCESS: Branch '.*' deleted$"
+
+  run git branch --list bats_ns/bats_xyz
+  assert_output ""
+} #}}}
+
 # ── Cd ────────────────────────────────────────────────────────────────────────
 
 @test "git wt cd (no args prints main worktree)" { #{{{
@@ -573,6 +598,19 @@ setup() { #{{{
   run -0 git wt status
   assert_output -p "$(pwd -P)+bats_xyz"
   assert_output -p " M src/git-wt"
+} #}}}
+
+@test "git wt status shows broken for missing worktree directory" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+  rm -rf "$(pwd -P)+bats_xyz"
+
+  run -0 git wt status
+  assert_output -p "$(pwd -P)+bats_xyz"
+  assert_output -p "broken (directory missing)"
+
+  run git worktree prune
 } #}}}
 
 # ── Completion ────────────────────────────────────────────────────────────────
