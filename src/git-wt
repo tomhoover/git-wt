@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.19.3"
+VERSION="0.19.4"
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
@@ -402,17 +402,16 @@ add_worktree() { #{{{
     exit 1
   fi
   # Try checking out existing branch first (handles DWIM from remotes), then create a new one
-  local branch_note git_out first_err
+  local branch_note git_out
   if git_out=$(git worktree add "${target}" "${branch}" 2>&1); then
     branch_note="existing branch"
     [[ -n "${git_out}" ]] && echo "${git_out}"
   else
-    first_err="${git_out}"
     if git_out=$(git worktree add -b "${branch}" "${target}" 2>&1); then
       branch_note="new branch"
       echo "${git_out}"
     else
-      echo "${first_err}" >&2
+      echo "${git_out}" >&2
       error "Failed to create worktree for '${branch}'"
       exit 1
     fi
