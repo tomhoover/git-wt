@@ -74,8 +74,9 @@ This defines a `wt` function that delegates to `git wt` for all commands, except
 
 ```bash
 wt add feature-x      # same as: git wt add feature-x
-wt cd feature-x       # cd into the worktree (no subshell needed)
-wt cd                 # cd back to main worktree
+wt cd feature-x       # cd into the worktree (exact or partial name match)
+wt cd feat            # cd into a worktree whose name starts with "feat"
+wt cd                 # cd back to main worktree (or launch fzf selector if installed)
 ```
 
 ## Shell integration
