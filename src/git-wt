@@ -346,7 +346,7 @@ list_worktrees() { #{{{
   # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
   local cur_path
   cur_path=$(pwd -P)
-  local wt_path='' wt_head='' wt_branch='' dirty=''
+  local wt_path='' wt_head='' wt_branch='' dirty='' status_out=''
   while IFS= read -r line; do
     case "$line" in
       worktree\ *) wt_path="${line#worktree }" ;;
@@ -358,7 +358,12 @@ list_worktrees() { #{{{
       detached) wt_branch="" ;;
       bare) wt_branch="(bare)" ;;
       "")
-        if [[ ! -d "${wt_path}" ]] || [[ -n "$(git -C "${wt_path}" status --short 2>/dev/null)" ]]; then
+        status_out=''
+        if [[ ! -d "${wt_path}" ]]; then
+          dirty=" ${RED}!!${RESET}"
+        elif ! status_out=$(git -C "${wt_path}" status --short 2>/dev/null); then
+          dirty=" ${RED}!!${RESET}"
+        elif [[ -n "${status_out}" ]]; then
           dirty=" ${RED}!${RESET}"
         else
           dirty=""
@@ -430,7 +435,7 @@ Usage: wt [options] <command> [<worktree>]
 
     Commands:
         a | add         ) add a worktree
-        l | ls | list   ) list worktrees (appends a '${RED}!${CYAN}' to indicate a dirty worktree)
+        l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!!${CYAN}' = broken/missing)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
         c | cd          ) cd into worktree; no arg = main worktree
@@ -454,7 +459,7 @@ Usage: git-wt [options] <command> [<worktree>]
 
     Commands:
         a | add         ) add a worktree
-        l | ls | list   ) list worktrees (appends a '${RED}!${CYAN}' to indicate a dirty worktree)
+        l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!!${CYAN}' = broken/missing)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
         c | cd          ) print path to worktree; no arg = main worktree (use: cd "\$(git wt cd [<worktree>])")
