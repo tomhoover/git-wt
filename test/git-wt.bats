@@ -728,6 +728,15 @@ setup() { #{{{
   assert_output -p 'wt()'
 } #}}}
 
+@test "wt cd nonexistent aborts without changing directory" { #{{{
+  run -1 bash --norc -c "
+    eval \"\$(git wt init bash)\"
+    wt cd nonexistent_worktree_bats || exit 1
+    echo \"__dir__:\$(pwd -P)\"
+  "
+  refute_output -p "__dir__:"
+} #}}}
+
 # ── Prune ─────────────────────────────────────────────────────────────────────
 
 @test "git wt prune (all aliases)" { #{{{

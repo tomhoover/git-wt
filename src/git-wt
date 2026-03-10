@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.20.3"
+VERSION="0.20.4"
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
@@ -42,7 +42,7 @@ init_shell() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    c | cd) cd "$(GIT_WT_CALLER=wt git wt cd "${@:2}")" ;;
+    c | cd) local _wt_dir; _wt_dir="$(GIT_WT_CALLER=wt git wt cd "${@:2}")" || return 1; cd "$_wt_dir" ;;
     *)       GIT_WT_CALLER=wt git wt "$@" ;;
   esac
 }
