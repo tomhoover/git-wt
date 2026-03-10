@@ -207,6 +207,40 @@ setup() { #{{{
   run git branch -D bats_ns/bats_xyz
 } #}}}
 
+@test "git wt add bats_xyz runs mise trust after creating worktree" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  fake_mise=$(mktemp)
+  printf '#!/bin/sh\nexit 0\n' >"${fake_mise}"
+  chmod +x "${fake_mise}"
+
+  run -0 env GIT_WT_MISE="${fake_mise}" git wt add bats_xyz
+  assert_output -p "Worktree created at:"
+  assert_output -p "mise trust applied"
+
+  rm -f "${fake_mise}"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add bats_xyz warns and succeeds if mise trust fails" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  fake_mise=$(mktemp)
+  printf '#!/bin/sh\nexit 1\n' >"${fake_mise}"
+  chmod +x "${fake_mise}"
+
+  run -0 env GIT_WT_MISE="${fake_mise}" git wt add bats_xyz
+  assert_output -p "Worktree created at:"
+  assert_line -e "^WARNING: mise trust failed.*$"
+
+  rm -f "${fake_mise}"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @test "git wt list (all aliases)" { #{{{
