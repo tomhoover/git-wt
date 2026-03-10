@@ -4,12 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-## Unreleased changes
+## v0.19.3 (2026-03-10)
+
+### Bug Fixes
+- detect broken/inaccessible worktrees in status and list; add test coverage for slash-branch remove and broken status [`e0cd9bb`](https://github.com/tomhoover/git-wt/commit/e0cd9bb)
+
+## v0.19.2 (2026-03-10)
+
+### Refactor
+- address inconsistencies and minor issues [`6ccd43f`](https://github.com/tomhoover/git-wt/commit/6ccd43f)
+
+## v0.19.1 (2026-03-10)
+
+### Bug Fixes
+- surface first-attempt error in add, detect broken worktrees in status, warn on detached-HEAD remove -d; add missing tests [`f5279ee`](https://github.com/tomhoover/git-wt/commit/f5279ee)
+
+## v0.19.0 (2026-03-10)
+
+### Feature
+- support slash branches and prefix matching in remove [`21d594a`](https://github.com/tomhoover/git-wt/commit/21d594a)
 
 ### Continuous Integration
 - Add Claude Code GitHub Workflow (#10) [`ab51092`](https://github.com/tomhoover/git-wt/commit/ab51092)
 
 ### Documentation
+- :robot: changelog file generated [`6a75110`](https://github.com/tomhoover/git-wt/commit/6a75110)
 - :robot: changelog file generated [`ffb7bca`](https://github.com/tomhoover/git-wt/commit/ffb7bca)
 
 ## v0.18.6 (2026-03-10)
