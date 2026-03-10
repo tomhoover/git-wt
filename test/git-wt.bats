@@ -284,7 +284,7 @@ setup() { #{{{
   assert_output -p "!"
 } #}}}
 
-@test "git wt list shows broken worktree with !! marker" { #{{{
+@test "git wt list shows broken worktree with !! (directory missing) marker" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
   run git wt add bats_xyz
@@ -292,7 +292,7 @@ setup() { #{{{
 
   run -0 git wt list
   assert_output -p "$(pwd -P)+bats_xyz"
-  assert_output -p "!!"
+  assert_output -p "!! (directory missing)"
 
   run git worktree prune
 } #}}}
