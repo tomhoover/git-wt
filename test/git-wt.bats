@@ -250,6 +250,19 @@ setup() { #{{{
   assert_output -p "!"
 } #}}}
 
+@test "git wt list shows broken worktree with !! marker" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+  rm -rf "$(pwd -P)+bats_xyz"
+
+  run -0 git wt list
+  assert_output -p "$(pwd -P)+bats_xyz"
+  assert_output -p "!!"
+
+  run git worktree prune
+} #}}}
+
 # ── Remove ────────────────────────────────────────────────────────────────────
 
 @test "git wt remove (missing name)" { #{{{
