@@ -211,11 +211,11 @@ setup() { #{{{
 
 @test "git wt list (all aliases)" { #{{{
   run -0 git wt l
-  assert_line -n 0 -e '^.* \[.+\]$'
+  assert_line -n 0 -e '^.* \[.+\]( !)?$'
   run -0 git wt ls
-  assert_line -n 0 -e '^.* \[.+\]$'
+  assert_line -n 0 -e '^.* \[.+\]( !)?$'
   run -0 git wt list
-  assert_line -n 0 -e '^.* \[.+\]$'
+  assert_line -n 0 -e '^.* \[.+\]( !)?$'
 } #}}}
 
 @test "git wt list highlights current worktree" { #{{{
