@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.18.5"
+VERSION="0.19.0"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -283,7 +283,7 @@ cd_worktree() { #{{{
   main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
   local prefix="${main_root}+"
 
-  local branch="${1}"
+  local branch="${1//\//+}"
   local target="${prefix}${branch}"
 
   # Exact match
@@ -357,7 +357,7 @@ missing_worktree_name() { #{{{
 
 add_worktree() { #{{{
   local branch="${1}"
-  local target="${REPO_ROOT}+${branch}"
+  local target="${REPO_ROOT}+${branch//\//+}"
   if [[ "${branch}" == HEAD* ]]; then
     error "Please provide a branch name, not a commit reference"
     exit 1
@@ -477,17 +477,14 @@ process_arguments() { #{{{
           shift
         done
         if [[ "$#" -ge 1 ]]; then
-          local branch=""
+          local wt_path branch=""
+          wt_path=$(cd_worktree "${1}")
           branch=$(git worktree list --porcelain \
-            | awk -v p="${REPO_ROOT}+${1}" \
+            | awk -v p="${wt_path}" \
               '$0=="worktree "p{f=1} f && /^branch/{sub("refs/heads/",""); print $2; exit}')
-          if [[ -z "${branch}" ]] && ! git worktree list --porcelain | grep -Fxq "worktree ${REPO_ROOT}+${1}"; then
-            error "Worktree '${1}' not found"
-            exit 1
-          fi
           # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
           # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
-          git worktree remove ${force:+-f} "${REPO_ROOT}+${1}"
+          git worktree remove ${force:+-f} "${wt_path}"
           success "Worktree '${1}' removed successfully"
           if [[ -n "${delete_branch}" && -n "${branch}" ]]; then
             git branch -d "${branch}"

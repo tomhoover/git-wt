@@ -11,9 +11,11 @@ teardown_file() { #{{{
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_remote"
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
   run git branch -D bats_remote
+  run git branch -D bats_ns/bats_xyz
   run git update-ref -d refs/remotes/origin/bats_remote
   run git worktree prune
 } #}}}
@@ -171,6 +173,22 @@ setup() { #{{{
   git update-ref -d refs/remotes/origin/bats_remote
   run git worktree remove --force "$(pwd -P)+bats_remote"
   run git branch -D bats_remote
+} #}}}
+
+@test "git wt add bats_ns/bats_xyz (branch with slash uses + in path)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git branch -D bats_ns/bats_xyz
+
+  run -0 git wt add bats_ns/bats_xyz
+  assert_output -p "Worktree created at: $(pwd -P)+bats_ns+bats_xyz"
+  assert_output -p "(new branch)"
+
+  # cd resolves slash name to the + path
+  run -0 git wt cd bats_ns/bats_xyz
+  assert_output "$(pwd -P)+bats_ns+bats_xyz"
+
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git branch -D bats_ns/bats_xyz
 } #}}}
 
 # ── List ──────────────────────────────────────────────────────────────────────
@@ -343,6 +361,32 @@ setup() { #{{{
   # Already removed: should fail
   run -1 git wt --debug remove -f bats_dirty
   assert_line -e '^ERROR: Worktree .* not found$'
+} #}}}
+
+@test "git wt remove (prefix match)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt remove bats_x
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+
+  run -1 git wt remove bats_x
+  assert_line -e '^ERROR: Worktree .* not found$'
+} #}}}
+
+@test "git wt remove (ambiguous prefix)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git worktree remove --force "$(pwd -P)+bats_dirty"
+  run git branch -D bats_xyz
+  run git branch -D bats_dirty
+  run git wt add bats_xyz
+  run git wt add bats_dirty
+
+  run -1 git wt remove bats
+  assert_line -e "^ERROR: Ambiguous worktree 'bats'.*$"
+  assert_output -p "bats_xyz"
+  assert_output -p "bats_dirty"
 } #}}}
 
 # ── Cd ────────────────────────────────────────────────────────────────────────
