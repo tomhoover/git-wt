@@ -12,6 +12,7 @@ teardown_file() { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_remote"
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git worktree remove --force "$(pwd -P)+bats_detach"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
   run git branch -D bats_remote
@@ -102,6 +103,21 @@ setup() { #{{{
 + case "${1}" in
 + error'
   assert_line -e '^ERROR: Unknown argument: abcxyz$'
+} #}}}
+
+# ── Outside git repository ────────────────────────────────────────────────────
+
+@test "git wt (add/list/remove/status/cd) fail outside a git repo" { #{{{
+  run -1 bash -c 'cd /tmp && git wt add foo'
+  assert_line -e '^ERROR: Not inside a git repository$'
+  run -1 bash -c 'cd /tmp && git wt list'
+  assert_line -e '^ERROR: Not inside a git repository$'
+  run -1 bash -c 'cd /tmp && git wt remove foo'
+  assert_line -e '^ERROR: Not inside a git repository$'
+  run -1 bash -c 'cd /tmp && git wt status'
+  assert_line -e '^ERROR: Not inside a git repository$'
+  run -1 bash -c 'cd /tmp && git wt cd'
+  assert_line -e '^ERROR: Not inside a git repository$'
 } #}}}
 
 # ── Add ───────────────────────────────────────────────────────────────────────
@@ -223,6 +239,17 @@ setup() { #{{{
   assert_output -p "[bats_xyz]"
 } #}}}
 
+@test "git wt list shows dirty worktree with ! marker" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+  echo "make dirty" >>"$(pwd -P)+bats_xyz/src/git-wt"
+
+  run -0 git wt list
+  assert_output -p "$(pwd -P)+bats_xyz"
+  assert_output -p "!"
+} #}}}
+
 # ── Remove ────────────────────────────────────────────────────────────────────
 
 @test "git wt remove (missing name)" { #{{{
@@ -327,6 +354,15 @@ setup() { #{{{
   assert_line -e "^SUCCESS: Branch '.*' deleted$"
 } #}}}
 
+@test "git wt remove -d (detached HEAD warns, does not delete branch)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_detach"
+  git worktree add --detach "$(pwd -P)+bats_detach" HEAD
+
+  run -0 git wt remove -d bats_detach
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+  assert_output -p "WARNING:"
+} #}}}
+
 @test "git wt remove -f -d bats_dirty (force + delete-branch)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git branch -D bats_dirty
@@ -426,6 +462,21 @@ setup() { #{{{
   assert_output "$(pwd -P)+bats_xyz"
   run -0 git wt cd bats_xy
   assert_output "$(pwd -P)+bats_xyz"
+} #}}}
+
+@test "git wt cd (segment match)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git branch -D bats_ns/bats_xyz
+  run git wt add bats_ns/bats_xyz
+
+  # "bats_xyz" matches the trailing segment of "+bats_ns+bats_xyz"
+  run -0 git wt cd bats_xyz
+  assert_output "$(pwd -P)+bats_ns+bats_xyz"
+
+  run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  run git branch -D bats_ns/bats_xyz
 } #}}}
 
 @test "git wt cd (ambiguous prefix)" { #{{{

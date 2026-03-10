@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.19.0"
+VERSION="0.19.1"
 PROG="${GIT_WT_CALLER:-git wt}"
 
 # Only use colors in interactive shells, not from crontab
@@ -31,6 +31,10 @@ error() { #{{{
 
 success() { #{{{
   echo "${GREEN}SUCCESS: ${1}${RESET}"
+} #}}}
+
+warn() { #{{{
+  echo "${MAGENTA}WARNING: ${1}${RESET}" >&2
 } #}}}
 
 init_shell() { #{{{
@@ -236,9 +240,13 @@ status_worktrees() { #{{{
       HEAD\ *) ;;
       "")
         [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
-        files=$(git -C "${wt_path}" status --short 2>/dev/null | tr '\n' ' ')
-        files="${files% }"
-        [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
+        if [[ ! -d "${wt_path}" ]]; then
+          files="${RED}broken (directory missing)${RESET}"
+        else
+          files=$(git -C "${wt_path}" status --short 2>/dev/null | tr '\n' ' ')
+          files="${files% }"
+          [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
+        fi
         printf "%s ${BOLD}${GREEN}%s${RESET}  ${CYAN}[%s]${RESET}  %s\n" \
           "${marker}" "${wt_path}" "${wt_branch:-detached}" "${files}"
         wt_path=''
@@ -366,17 +374,20 @@ add_worktree() { #{{{
     error "Worktree directory '${target}' already exists"
     exit 1
   fi
-  # Try checking out existing branch first, then create a new one
-  local branch_note git_out
-  if git worktree add "${target}" "${branch}" 2>/dev/null; then
+  # Try checking out existing branch first (handles DWIM from remotes), then create a new one
+  local branch_note git_out first_err
+  if git_out=$(git worktree add "${target}" "${branch}" 2>&1); then
     branch_note="existing branch"
-  elif git_out=$(git worktree add -b "${branch}" "${target}" 2>&1); then
-    branch_note="new branch"
-    echo "${git_out}"
   else
-    echo "${git_out}" >&2
-    error "Failed to create worktree for '${branch}'"
-    exit 1
+    first_err="${git_out}"
+    if git_out=$(git worktree add -b "${branch}" "${target}" 2>&1); then
+      branch_note="new branch"
+      echo "${git_out}"
+    else
+      echo "${first_err}" >&2
+      error "Failed to create worktree for '${branch}'"
+      exit 1
+    fi
   fi
   echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
   echo "    ${MAGENTA}cd '${target}'${RESET}"
@@ -486,9 +497,13 @@ process_arguments() { #{{{
           # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
           git worktree remove ${force:+-f} "${wt_path}"
           success "Worktree '${1}' removed successfully"
-          if [[ -n "${delete_branch}" && -n "${branch}" ]]; then
-            git branch -d "${branch}"
-            success "Branch '${branch}' deleted"
+          if [[ -n "${delete_branch}" ]]; then
+            if [[ -n "${branch}" ]]; then
+              git branch -d "${branch}"
+              success "Branch '${branch}' deleted"
+            else
+              warn "Cannot delete branch: worktree was in detached HEAD state"
+            fi
           fi
         else
           missing_worktree_name "remove"
