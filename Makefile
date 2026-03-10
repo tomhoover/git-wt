@@ -81,7 +81,8 @@ clean-worktrees: ## Remove any stray bats test worktrees
 		| grep '+bats_' \
 		| awk '{print $$2}' \
 		| while read -r path; do git worktree remove --force "$$path" 2>/dev/null || true; done
-	@git branch -D bats_xyz bats_dirty 2>/dev/null || true
+	@git branch -D bats_xyz bats_dirty bats_remote 2>/dev/null || true
+	@git branch -D bats_ns/bats_xyz 2>/dev/null || true
 	@git worktree prune
 
 # ── Checks ────────────────────────────────────────────────────────────────────

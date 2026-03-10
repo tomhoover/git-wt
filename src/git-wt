@@ -5,8 +5,9 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.19.1"
+VERSION="0.19.2"
 PROG="${GIT_WT_CALLER:-git wt}"
+REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
 # Only use colors in interactive shells, not from crontab
 if [ -t 1 ]; then
@@ -101,6 +102,9 @@ fi
 EOF
 } #}}}
 
+# NOTE: the worktree-branch awk snippet inside completion_zsh is identical to the one
+# in completion_bash. They cannot share a helper because each function emits standalone
+# shell code for the user's shell process, which cannot call back into git-wt internals.
 completion_zsh() { #{{{
   cat <<'EOF'
 #compdef git-wt
@@ -340,21 +344,37 @@ list_worktrees() { #{{{
   # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
   local cur_path
   cur_path=$(pwd -P)
-  local path='' rest='' dirty=''
+  local wt_path='' wt_head='' wt_branch='' dirty=''
   while IFS= read -r line; do
-    path="${line%% *}"
-    rest="${line#"${path}"}"
-    if [[ -n "$(git -C "${path}" status --short 2>/dev/null)" ]]; then
-      dirty=" ${RED}!${RESET}"
-    else
-      dirty=""
-    fi
-    if [[ "${path}" == "${cur_path}" ]]; then
-      printf "* ${BOLD}${GREEN}%s${RESET}${CYAN}%s${RESET}%s\n" "${path}" "${rest}" "${dirty}"
-    else
-      printf "  %s%s\n" "${line}" "${dirty}"
-    fi
-  done < <(git worktree list)
+    case "$line" in
+      worktree\ *) wt_path="${line#worktree }" ;;
+      HEAD\ *)
+        wt_head="${line#HEAD }"
+        wt_head="${wt_head:0:7}"
+        ;;
+      branch\ *) wt_branch="${line#branch refs/heads/}" ;;
+      detached) wt_branch="" ;;
+      bare) wt_branch="(bare)" ;;
+      "")
+        if [[ -n "$(git -C "${wt_path}" status --short 2>/dev/null)" ]]; then
+          dirty=" ${RED}!${RESET}"
+        else
+          dirty=""
+        fi
+        if [[ "${wt_path}" == "${cur_path}" ]]; then
+          printf "* ${BOLD}${GREEN}%s${RESET}  %s [%s]%s\n" \
+            "${wt_path}" "${wt_head}" "${wt_branch:-detached}" "${dirty}"
+        else
+          printf "  %s  %s [%s]%s\n" \
+            "${wt_path}" "${wt_head}" "${wt_branch:-detached}" "${dirty}"
+        fi
+        wt_path='' wt_head='' wt_branch=''
+        ;;
+    esac
+  done < <(
+    git worktree list --porcelain
+    echo
+  )
 } #}}}
 
 missing_worktree_name() { #{{{
@@ -378,6 +398,7 @@ add_worktree() { #{{{
   local branch_note git_out first_err
   if git_out=$(git worktree add "${target}" "${branch}" 2>&1); then
     branch_note="existing branch"
+    [[ -n "${git_out}" ]] && echo "${git_out}"
   else
     first_err="${git_out}"
     if git_out=$(git worktree add -b "${branch}" "${target}" 2>&1); then
@@ -547,6 +568,7 @@ process_arguments() { #{{{
       # }}}
       init) #{{{
         shift
+        # init_shell emits a shell-agnostic snippet; bash and zsh both use the same output
         case "${1:-}" in
           bash | zsh) init_shell ;;
           *)
