@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## v0.18.6 (2026-03-10)
+
+### Documentation
+- document partial name matching and fzf behaviour for 'wt cd' [`ead324a`](https://github.com/tomhoover/git-wt/commit/ead324a)
+
+## v0.18.5 (2026-03-09)
+
+### Refactor
+- remove dead variable, hoist locals, reduce git calls [`bbb1513`](https://github.com/tomhoover/git-wt/commit/bbb1513)
+
+## v0.18.4 (2026-03-09)
+
+### Refactor
+- polish status_worktrees() and add_worktree() [`ad49472`](https://github.com/tomhoover/git-wt/commit/ad49472)
+
+## v0.18.3 (2026-03-09)
+
+### Refactor
+- clean up dead code and minor issues in src/git-wt [`9c74377`](https://github.com/tomhoover/git-wt/commit/9c74377)
+
+## v0.18.2 (2026-03-09)
+
+### Bug Fixes
+- sync completion files with embedded completions in src/git-wt [`430d6e9`](https://github.com/tomhoover/git-wt/commit/430d6e9)
+
+### Documentation
+- :robot: changelog file generated [`2b0a69b`](https://github.com/tomhoover/git-wt/commit/2b0a69b)
+
 ## v0.18.1 (2026-03-09)
 
 ### Documentation
