@@ -279,6 +279,13 @@ setup() { #{{{
   assert_line -e "^ERROR: Unknown option '--bogus'$"
 } #}}}
 
+@test "git wt remove (flag after worktree name is rejected)" { #{{{
+  run -1 git wt remove bats_xyz -d
+  assert_line -e "^ERROR: Flags must come before the worktree name: '-d'$"
+  run -1 git wt remove bats_xyz --force
+  assert_line -e "^ERROR: Flags must come before the worktree name: '--force'$"
+} #}}}
+
 @test "git wt remove (worktree not found)" { #{{{
   run -1 git wt remove nonexistent_worktree
   assert_line -e '^ERROR: Worktree .* not found$'
