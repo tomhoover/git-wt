@@ -42,3 +42,26 @@ Tests live in `test/git-wt.bats` using [bats-core](https://github.com/bats-core/
 ## Pre-commit Hooks
 
 Pre-commit runs shellcheck, shfmt, and several file hygiene checks. The `no-commit-to-branch` hook prevents direct commits to protected branches. Run `pre-commit run --all-files` to check manually.
+
+## Commit Messages
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>: <description>
+```
+
+Common types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
+
+Examples:
+- `feat: automatically run mise trust on newly added worktree`
+- `fix: show actionable git error when worktree add fails`
+- `docs: update CLAUDE.md with conventional commit guidance`
+
+## Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `GIT_WT_FZF` | Override fzf binary path (useful for testing) |
+| `GIT_WT_MISE` | Override mise binary path (useful for testing; set to a fake script to avoid calling real mise) |
+| `GIT_WT_CALLER` | Set to `wt` when invoked via the shell function |

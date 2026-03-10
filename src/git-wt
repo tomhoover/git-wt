@@ -390,6 +390,20 @@ missing_worktree_name() { #{{{
   exit 1
 } #}}}
 
+maybe_mise_trust() { #{{{
+  local target="${1}"
+  local mise_bin="${GIT_WT_MISE:-}"
+  if [[ -z "${mise_bin}" ]] && command -v mise &>/dev/null; then
+    mise_bin="mise"
+  fi
+  [[ -z "${mise_bin}" ]] && return 0
+  if "${mise_bin}" trust "${target}" &>/dev/null; then
+    echo "    ${CYAN}mise trust applied${RESET}"
+  else
+    warn "mise trust failed for '${target}'"
+  fi
+} #}}}
+
 add_worktree() { #{{{
   local branch="${1}"
   local target="${REPO_ROOT}+${branch//\//+}"
@@ -418,6 +432,7 @@ add_worktree() { #{{{
   fi
   echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
   echo "    ${MAGENTA}cd '${target}'${RESET}"
+  maybe_mise_trust "${target}"
 } #}}}
 
 usage() { #{{{
