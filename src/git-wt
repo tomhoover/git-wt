@@ -42,7 +42,7 @@ init_shell() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    c | cd) cd "$(GIT_WT_CALLER=wt git wt cd "${@:2}")" ;;
+    c | cd) local _wt_dir; _wt_dir="$(GIT_WT_CALLER=wt git wt cd "${@:2}")" || return 1; cd "$_wt_dir" ;;
     *)       GIT_WT_CALLER=wt git wt "$@" ;;
   esac
 }
