@@ -4,12 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-## Unreleased changes
+## v0.19.4 (2026-03-10)
 
 ### Bug Fixes
+- show actionable git error when worktree add fails; fix list test regex [`96fe1da`](https://github.com/tomhoover/git-wt/commit/96fe1da)
 - distinguish broken (!!) from dirty (!) in list output (#11) [`2c8dbc1`](https://github.com/tomhoover/git-wt/commit/2c8dbc1)
 
 ### Documentation
+- :robot: changelog file generated [`691d010`](https://github.com/tomhoover/git-wt/commit/691d010)
 - :robot: changelog file generated [`a86173d`](https://github.com/tomhoover/git-wt/commit/a86173d)
 
 ## v0.19.3 (2026-03-10)
