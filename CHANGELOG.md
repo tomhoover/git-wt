@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## Unreleased changes
+
+### Continuous Integration
+- Add Claude Code GitHub Workflow (#10) [`ab51092`](https://github.com/tomhoover/git-wt/commit/ab51092)
+
+### Documentation
+- :robot: changelog file generated [`ffb7bca`](https://github.com/tomhoover/git-wt/commit/ffb7bca)
+
 ## v0.18.6 (2026-03-10)
 
 ### Documentation
