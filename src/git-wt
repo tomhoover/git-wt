@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.19.2"
+VERSION="0.19.3"
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
@@ -246,8 +246,10 @@ status_worktrees() { #{{{
         [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
         if [[ ! -d "${wt_path}" ]]; then
           files="${RED}broken (directory missing)${RESET}"
+        elif ! files=$(git -C "${wt_path}" status --short 2>/dev/null); then
+          files="${RED}broken (inaccessible)${RESET}"
         else
-          files=$(git -C "${wt_path}" status --short 2>/dev/null | tr '\n' ' ')
+          files=$(printf '%s' "${files}" | tr '\n' ' ')
           files="${files% }"
           [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
         fi
@@ -356,7 +358,7 @@ list_worktrees() { #{{{
       detached) wt_branch="" ;;
       bare) wt_branch="(bare)" ;;
       "")
-        if [[ -n "$(git -C "${wt_path}" status --short 2>/dev/null)" ]]; then
+        if [[ ! -d "${wt_path}" ]] || [[ -n "$(git -C "${wt_path}" status --short 2>/dev/null)" ]]; then
           dirty=" ${RED}!${RESET}"
         else
           dirty=""
