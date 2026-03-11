@@ -10,9 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - automatically run mise trust on newly added worktree [`8dfc2cb`](https://github.com/tomhoover/git-wt/commit/8dfc2cb)
 
 ### Bug Fixes
+- wt cd nonexistent silently no-ops [`d1d7427`](https://github.com/tomhoover/git-wt/commit/d1d7427)
+- reject flags that appear after the worktree name in remove command [`85ad587`](https://github.com/tomhoover/git-wt/commit/85ad587)
+- distinguish directory missing vs inaccessible in list output [`ea4a6f3`](https://github.com/tomhoover/git-wt/commit/ea4a6f3)
 - awk reads past detached-HEAD block when extracting branch for remove -d [`35e0522`](https://github.com/tomhoover/git-wt/commit/35e0522)
 
 ### Documentation
+- :robot: changelog file generated [`4e04a57`](https://github.com/tomhoover/git-wt/commit/4e04a57)
 - :robot: changelog file generated [`fb93ac8`](https://github.com/tomhoover/git-wt/commit/fb93ac8)
 
 ## v0.19.4 (2026-03-10)
