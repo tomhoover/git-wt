@@ -5,9 +5,9 @@ SRC          := src/git-wt
 TEST_DIR     := test
 TEST_FILE    := $(TEST_DIR)/git-wt.bats
 BATS         := bats
+GIT_CLIFF    := git-cliff
 SHELLCHECK   := shellcheck
 SHFMT        := shfmt
-GIT_CLIFF    := git-cliff
 
 # Release configuration — override these when copying to another project
 VERSION_FILE ?= src/git-wt
@@ -94,7 +94,7 @@ clean-worktrees: ## Remove any stray bats test worktrees
 # ── Checks ────────────────────────────────────────────────────────────────────
 
 check-tools: ## Verify required tools are installed
-	@for tool in $(BATS) $(SHELLCHECK) $(SHFMT); do \
+	@for tool in $(BATS) $(GIT_CLIFF) $(SHELLCHECK) $(SHFMT); do \
 		if ! command -v $$tool &>/dev/null; then \
 			echo "ERROR: $$tool is not installed or not in PATH"; \
 			exit 1; \
