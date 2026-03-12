@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.21.4 (2026-03-12)
+
+### CI
+- Add workflow to auto-update Homebrew tap on release [`033863c`](https://github.com/tomhoover/git-wt/commit/033863cc08b0d1fef728f20143a72701b744f6ee)
+
+### Chore
+- Add dependabot for GitHub Actions version updates [`7ba729f`](https://github.com/tomhoover/git-wt/commit/7ba729f56fa343f77beeb9c4c26e115ea40a3104)
+
+### Build
+- Add git-cliff to check-tools [`6d5aef4`](https://github.com/tomhoover/git-wt/commit/6d5aef4cae27369bb42150a1eff9c6f7adde4ae1)
 ## v0.21.3 (2026-03-12)
 
 ### CI
