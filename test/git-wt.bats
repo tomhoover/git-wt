@@ -19,6 +19,9 @@ teardown_file() { #{{{
   run git branch -D bats_ns/bats_xyz
   run git update-ref -d refs/remotes/origin/bats_remote
   run git worktree prune
+  rm -f "$(pwd -P)/.git-wt-copy"
+  rm -f "$(pwd -P)/.git-wt-copy-seed"
+  rm -rf "$(pwd -P)/.git-wt-copy-dir"
 } #}}}
 
 setup() { #{{{
@@ -300,6 +303,109 @@ setup() { #{{{
 @test "git wt list does not show phantom detached entry" { #{{{
   run -0 git wt list
   refute_output -p "[detached]"
+} #}}}
+
+# ── Add: .git-wt-copy ─────────────────────────────────────────────────────────
+
+@test "git wt add: no .git-wt-copy — silent success" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  rm -f "$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  refute_output -p "Copied"
+  refute_output -p "WARNING"
+
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add: .git-wt-copy copies file to new worktree" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  echo "test-seed-content" >"$(pwd -P)/.git-wt-copy-seed"
+  echo ".git-wt-copy-seed" >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "Copied 1 item(s) from .git-wt-copy"
+  [[ -f "$(pwd -P)+bats_xyz/.git-wt-copy-seed" ]]
+
+  rm -f "$(pwd -P)/.git-wt-copy" "$(pwd -P)/.git-wt-copy-seed"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add: .git-wt-copy copies directory to new worktree" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  mkdir -p "$(pwd -P)/.git-wt-copy-dir"
+  echo "inner" >"$(pwd -P)/.git-wt-copy-dir/inner.txt"
+  printf '.git-wt-copy-dir/\n' >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "Copied 1 item(s) from .git-wt-copy"
+  [[ -f "$(pwd -P)+bats_xyz/.git-wt-copy-dir/inner.txt" ]]
+
+  rm -rf "$(pwd -P)/.git-wt-copy" "$(pwd -P)/.git-wt-copy-dir"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add: .git-wt-copy skips missing source with warning" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  echo "no-such-file-xyz" >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "WARNING"
+  refute_output -p "Copied"
+
+  rm -f "$(pwd -P)/.git-wt-copy"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add: .git-wt-copy ignores comments and blank lines" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  echo "test-seed-content" >"$(pwd -P)/.git-wt-copy-seed"
+  printf '# this is a comment\n\n.git-wt-copy-seed\n' >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "Copied 1 item(s) from .git-wt-copy"
+  [[ -f "$(pwd -P)+bats_xyz/.git-wt-copy-seed" ]]
+
+  rm -f "$(pwd -P)/.git-wt-copy" "$(pwd -P)/.git-wt-copy-seed"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add: .git-wt-copy rejects absolute paths" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  echo "/etc/passwd" >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "WARNING"
+  refute_output -p "Copied"
+
+  rm -f "$(pwd -P)/.git-wt-copy"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add: .git-wt-copy rejects paths with .." { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  echo "../something" >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "WARNING"
+  refute_output -p "Copied"
+
+  rm -f "$(pwd -P)/.git-wt-copy"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
 } #}}}
 
 # ── Remove ────────────────────────────────────────────────────────────────────
