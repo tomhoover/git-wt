@@ -33,6 +33,19 @@ setup() { #{{{
   # make executables in src/ visible to PATH
   PATH="$DIR/../src:$PATH"
 
+  # Preserve any real .git-wt-copy the user has in their worktree
+  if [[ -f "$(pwd -P)/.git-wt-copy" ]]; then
+    cp "$(pwd -P)/.git-wt-copy" "${BATS_TEST_TMPDIR}/.git-wt-copy.saved"
+  fi
+} #}}}
+
+teardown() { #{{{
+  # Restore .git-wt-copy to its pre-test state
+  if [[ -f "${BATS_TEST_TMPDIR}/.git-wt-copy.saved" ]]; then
+    mv "${BATS_TEST_TMPDIR}/.git-wt-copy.saved" "$(pwd -P)/.git-wt-copy"
+  else
+    rm -f "$(pwd -P)/.git-wt-copy"
+  fi
 } #}}}
 
 # ── Usage / Help ─────────────────────────────────────────────────────────────
@@ -307,8 +320,7 @@ setup() { #{{{
 @test "git wt add: no .git-wt-copy — silent success" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
-  local saved_copy="${BATS_TEST_TMPDIR}/.git-wt-copy.bak"
-  if [[ -f "$(pwd -P)/.git-wt-copy" ]]; then mv "$(pwd -P)/.git-wt-copy" "${saved_copy}"; fi
+  rm -f "$(pwd -P)/.git-wt-copy"
 
   run -0 git wt add bats_xyz
   refute_output -p "Copied"
@@ -316,7 +328,6 @@ setup() { #{{{
 
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
-  if [[ -f "${saved_copy}" ]]; then mv "${saved_copy}" "$(pwd -P)/.git-wt-copy"; fi
 } #}}}
 
 @test "git wt add: .git-wt-copy copies file to new worktree" { #{{{
