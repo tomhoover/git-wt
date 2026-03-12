@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION="0.20.4"
+VERSION=0.20.5
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
@@ -243,6 +243,7 @@ status_worktrees() { #{{{
       branch\ *) wt_branch="${line#branch refs/heads/}" ;;
       HEAD\ *) ;;
       "")
+        [[ -z "${wt_path}" ]] && continue
         [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
         if [[ ! -d "${wt_path}" ]]; then
           files="${RED}broken (directory missing)${RESET}"
@@ -358,6 +359,7 @@ list_worktrees() { #{{{
       detached) wt_branch="" ;;
       bare) wt_branch="(bare)" ;;
       "")
+        [[ -z "${wt_path}" ]] && continue
         status_out=''
         if [[ ! -d "${wt_path}" ]]; then
           dirty=" ${RED}!! (directory missing)${RESET}"
