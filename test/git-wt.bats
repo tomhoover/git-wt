@@ -297,6 +297,11 @@ setup() { #{{{
   run git worktree prune
 } #}}}
 
+@test "git wt list does not show phantom detached entry" { #{{{
+  run -0 git wt list
+  refute_output -p "[detached]"
+} #}}}
+
 # ── Remove ────────────────────────────────────────────────────────────────────
 
 @test "git wt remove (missing name)" { #{{{
@@ -665,6 +670,11 @@ setup() { #{{{
   assert_output -p "broken (directory missing)"
 
   run git worktree prune
+} #}}}
+
+@test "git wt status does not show phantom detached entry" { #{{{
+  run -0 git wt status
+  refute_output -p "[detached]"
 } #}}}
 
 # ── Completion ────────────────────────────────────────────────────────────────
