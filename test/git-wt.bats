@@ -307,7 +307,8 @@ setup() { #{{{
 @test "git wt add: no .git-wt-copy — silent success" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
-  rm -f "$(pwd -P)/.git-wt-copy"
+  local saved_copy="${BATS_TEST_TMPDIR}/.git-wt-copy.bak"
+  if [[ -f "$(pwd -P)/.git-wt-copy" ]]; then mv "$(pwd -P)/.git-wt-copy" "${saved_copy}"; fi
 
   run -0 git wt add bats_xyz
   refute_output -p "Copied"
@@ -315,6 +316,7 @@ setup() { #{{{
 
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
+  if [[ -f "${saved_copy}" ]]; then mv "${saved_copy}" "$(pwd -P)/.git-wt-copy"; fi
 } #}}}
 
 @test "git wt add: .git-wt-copy copies file to new worktree" { #{{{
