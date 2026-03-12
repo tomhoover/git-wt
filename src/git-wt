@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION=0.20.6
+VERSION=0.21.0
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
@@ -406,6 +406,70 @@ maybe_mise_trust() { #{{{
   fi
 } #}}}
 
+_cp_cow_flags() { #{{{
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    local major
+    major="$(sw_vers -productVersion 2>/dev/null | cut -d. -f1)"
+    if [[ "${major}" =~ ^[0-9]+$ ]] && [[ "${major}" -ge 12 ]]; then
+      echo "-c -r"
+    else
+      echo "-r"
+    fi
+  else
+    echo "--reflink=auto -r"
+  fi
+} #}}}
+
+copy_worktree_files() { #{{{
+  local main_root="${1}"
+  local target="${2}"
+  local config_file="${main_root}/.git-wt-copy"
+  [[ -f "${config_file}" ]] || return 0
+
+  local cp_flags
+  cp_flags="$(_cp_cow_flags)"
+  local copied=0
+
+  while IFS= read -r raw; do
+    # Strip leading/trailing whitespace
+    local entry="${raw#"${raw%%[! ]*}"}"
+    entry="${entry%"${entry##*[! ]}"}"
+    # Skip blank lines and comments
+    [[ -z "${entry}" || "${entry}" == \#* ]] && continue
+    # Strip trailing slash (directories may include it for clarity)
+    entry="${entry%/}"
+    # Reject absolute paths or paths with ..
+    if [[ "${entry}" == /* || "${entry}" == *..* ]]; then
+      warn ".git-wt-copy: skipping invalid path '${entry}'"
+      continue
+    fi
+    local src="${main_root}/${entry}"
+    local dst="${target}/${entry}"
+    if [[ ! -e "${src}" ]]; then
+      warn ".git-wt-copy: '${entry}' not found in main worktree, skipping"
+      continue
+    fi
+    if [[ -e "${dst}" ]]; then
+      warn ".git-wt-copy: '${entry}' already exists in new worktree, skipping"
+      continue
+    fi
+    mkdir -p "$(dirname "${dst}")"
+    # shellcheck disable=SC2086
+    if ! cp ${cp_flags} "${src}" "${dst}" 2>/dev/null; then
+      # CoW may fail on some filesystems; retry with plain copy
+      if ! cp -r "${src}" "${dst}"; then
+        warn ".git-wt-copy: failed to copy '${entry}'"
+        continue
+      fi
+    fi
+    copied=$((copied + 1))
+  done <"${config_file}"
+
+  if [[ "${copied}" -gt 0 ]]; then
+    echo "    ${CYAN}Copied ${copied} item(s) from .git-wt-copy${RESET}"
+  fi
+} #}}}
+
 add_worktree() { #{{{
   local branch="${1}"
   local target="${REPO_ROOT}+${branch//\//+}"
@@ -435,6 +499,7 @@ add_worktree() { #{{{
   echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
   echo "    ${MAGENTA}cd '${target}'${RESET}"
   maybe_mise_trust "${target}"
+  copy_worktree_files "${REPO_ROOT}" "${target}"
 } #}}}
 
 usage() { #{{{
