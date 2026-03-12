@@ -5,7 +5,7 @@
 # set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
-VERSION=0.22.2
+VERSION=0.23.0
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
