@@ -613,7 +613,7 @@ process_arguments() { #{{{
           # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
           # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
           git worktree remove ${force:+-f} "${wt_path}"
-          success "Worktree '${wt_name}' removed successfully"
+          success "Worktree '${branch:-${wt_name}}' removed successfully"
           if [[ -n "${delete_branch}" ]]; then
             if [[ -n "${branch}" ]]; then
               git branch -d "${branch}"
