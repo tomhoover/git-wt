@@ -42,8 +42,32 @@ init_shell() { #{{{
   cat <<'EOF'
 wt() {
   case "${1:-}" in
-    c | cd) local _wt_dir; _wt_dir="$(GIT_WT_CALLER=wt git wt cd "${@:2}")" || return 1; cd "$_wt_dir" ;;
-    *)       GIT_WT_CALLER=wt git wt "$@" ;;
+    c | cd)
+      local _wt_dir
+      _wt_dir="$(GIT_WT_CALLER=wt git wt cd "${@:2}")" || return 1
+      cd "$_wt_dir"
+      ;;
+    a | add)
+      local _do_cd=0 _arg
+      [[ -n "${GIT_WT_ADD_CD:-}" ]] && _do_cd=1
+      for _arg in "$@"; do [[ "${_arg}" == "--cd" ]] && _do_cd=1; done
+      if (( _do_cd )); then
+        local _cd_file _wt_path _rc
+        _cd_file=$(mktemp)
+        GIT_WT_CALLER=wt GIT_WT_CD_FILE="${_cd_file}" git wt "$@"; _rc=$?
+        if [[ $_rc -eq 0 ]]; then
+          _wt_path=$(cat "${_cd_file}" 2>/dev/null)
+          [[ -n "${_wt_path}" ]] && cd "${_wt_path}"
+        fi
+        rm -f "${_cd_file}"
+        return $_rc
+      else
+        GIT_WT_CALLER=wt git wt "$@"
+      fi
+      ;;
+    *)
+      GIT_WT_CALLER=wt git wt "$@"
+      ;;
   esac
 }
 EOF
@@ -77,7 +101,7 @@ _git_wt() {
 
   case "$subcmd" in
     add | a)
-      mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
+      mapfile -t COMPREPLY < <(compgen -W "--cd $(_git_wt_branches)" -- "$cur")
       ;;
     remove | rm | r)
       mapfile -t COMPREPLY < <(compgen -W "-f --force -d --delete-branch $(_git_wt_worktrees)" -- "$cur")
@@ -158,8 +182,10 @@ _git-wt() {
     argument)
       case ${line[1]} in
         add | a)
-          local -a branches
+          local -a branches opts
+          opts=(--cd)
           branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+          compadd -a opts
           _describe 'branch' branches
           ;;
         remove | rm | r)
@@ -212,6 +238,8 @@ _git_wt() {
     case "$subcmd" in
       add | a)
         local -a branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+        local -a opts=(--cd)
+        compadd -a opts
         compadd -a branches
         ;;
       remove | rm | r)
@@ -473,7 +501,21 @@ copy_worktree_files() { #{{{
 add_worktree() { #{{{
   local branch="${1}"
   local base="${2:-}"
-  local target="${REPO_ROOT}+${branch//\//+}"
+  local cd_after="${3:-}"
+  local target_root="${REPO_ROOT}"
+  if [[ -n "${base}" ]]; then
+    local base_wt_path
+    base_wt_path=$(git worktree list --porcelain \
+      | awk -v b="${base}" '
+          /^worktree/ { path = $2 }
+          /^branch/ {
+            br = $2; sub("refs/heads/", "", br)
+            if (br == b) { print path; exit }
+          }
+        ')
+    [[ -n "${base_wt_path}" ]] && target_root="${base_wt_path}"
+  fi
+  local target="${target_root}+${branch//\//+}"
   if [[ "${branch}" == HEAD* ]]; then
     error "Please provide a branch name, not a commit reference"
     exit 1
@@ -508,9 +550,15 @@ add_worktree() { #{{{
     fi
   fi
   echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
-  echo "    ${MAGENTA}cd '${target}'${RESET}"
-  maybe_mise_trust "${target}"
-  copy_worktree_files "${REPO_ROOT}" "${target}"
+  if [[ -n "${cd_after}" && "${PROG}" == "wt" && -n "${GIT_WT_CD_FILE:-}" ]]; then
+    maybe_mise_trust "${target}"
+    copy_worktree_files "${REPO_ROOT}" "${target}"
+    echo "${target}" >"${GIT_WT_CD_FILE}"
+  else
+    echo "    ${MAGENTA}cd '${target}'${RESET}"
+    maybe_mise_trust "${target}"
+    copy_worktree_files "${REPO_ROOT}" "${target}"
+  fi
 } #}}}
 
 usage() { #{{{
@@ -526,7 +574,7 @@ Usage: wt [options] <command> [<worktree>]
         --debug         ) debugging info displayed
 
     Commands:
-        a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD
+        a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
@@ -550,7 +598,7 @@ Usage: git-wt [options] <command> [<worktree>]
         --debug         ) debugging info displayed
 
     Commands:
-        a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD
+        a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
@@ -580,8 +628,18 @@ process_arguments() { #{{{
       # }}}
       a | add) #{{{
         shift
-        if [[ "$#" -ge 1 ]]; then
-          add_worktree "${1}" "${2:-}"
+        local cd_after=""
+        local -a add_args=()
+        while [[ "$#" -ge 1 ]]; do
+          case "${1}" in
+            --cd) cd_after=true ;;
+            *) add_args+=("${1}") ;;
+          esac
+          shift
+        done
+        [[ -n "${GIT_WT_ADD_CD:-}" && "${PROG}" == "wt" ]] && cd_after=true
+        if [[ "${#add_args[@]}" -ge 1 ]]; then
+          add_worktree "${add_args[0]}" "${add_args[1]:-}" "${cd_after}"
         else
           missing_worktree_name "add"
         fi

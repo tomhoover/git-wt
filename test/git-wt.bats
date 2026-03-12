@@ -8,11 +8,15 @@ setup_file() { #{{{
 
 teardown_file() { #{{{
   echo "Cleaning up environment"
+  local master_root
+  master_root=$(git worktree list --porcelain \
+    | awk '/^worktree/{p=$2} /^branch/{if($2=="refs/heads/master"){print p; exit}}')
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_remote"
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_detach"
+  [[ -n "${master_root}" ]] && run git worktree remove --force "${master_root}+bats_xyz"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
   run git branch -D bats_remote
@@ -64,6 +68,8 @@ teardown() { #{{{
   assert_output -p '--debug'
 
   assert_output -p 'a | add         ) add a worktree; optional [<base>]'
+  assert_output -p '--cd changes into new worktree after creation'
+  assert_output -p 'GIT_WT_ADD_CD=1'
   assert_output -p 'l | ls | list'
   assert_output -p 'r | rm | remove'
   assert_output -p '--force'
@@ -152,9 +158,7 @@ teardown() { #{{{
 @test "git wt --debug add (no args shows error, with debug)" { #{{{
   run -1 git wt --debug add
   # shellcheck disable=SC2016
-  assert_output -p '+ shift
-+ [[ 0 -ge 1 ]]
-+ missing_worktree_name add'
+  assert_output -p '+ missing_worktree_name add'
   assert_output -p "ERROR: 'add' requires a worktree name"
 } #}}}
 
@@ -191,12 +195,62 @@ teardown() { #{{{
 } #}}}
 
 @test "git wt add bats_xyz master (create new branch from base)" { #{{{
+  local master_root
+  master_root=$(git worktree list --porcelain \
+    | awk '/^worktree/{p=$2} /^branch/{if($2=="refs/heads/master"){print p; exit}}')
   run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git worktree remove --force "${master_root}+bats_xyz"
   run git branch -D bats_xyz
 
   run -0 git wt add bats_xyz master
   assert_output -p "Worktree created at:"
   assert_output -p "(new branch from master)"
+  assert_output -p "${master_root}+bats_xyz"
+
+  run git worktree remove --force "${master_root}+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add bats_xyz --cd (without wt function) shows cd hint, not marker" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  run -0 git wt add bats_xyz --cd
+  assert_output -p "Worktree created at:"
+  assert_output -p "cd '"
+  refute_output -p "__WT_CD__"
+
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "wt add bats_xyz --cd changes into new worktree" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  run -0 bash --norc -c "
+    eval \"\$(git wt init bash)\"
+    wt add bats_xyz --cd || exit 1
+    echo \"__dir__:\$(pwd -P)\"
+  "
+  assert_output -p "Worktree created at:"
+  assert_output -p "__dir__:$(pwd -P)+bats_xyz"
+
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "wt add bats_xyz (GIT_WT_ADD_CD=1 default) changes into new worktree" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  run -0 bash --norc -c "
+    eval \"\$(git wt init bash)\"
+    GIT_WT_ADD_CD=1 wt add bats_xyz || exit 1
+    echo \"__dir__:\$(pwd -P)\"
+  "
+  assert_output -p "Worktree created at:"
+  assert_output -p "__dir__:$(pwd -P)+bats_xyz"
 
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
