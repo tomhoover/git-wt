@@ -62,6 +62,7 @@ Examples:
 
 | Variable | Purpose |
 |---|---|
+| `NO_COLOR` | Disable all color output (standard; see no-color.org) |
 | `GIT_WT_FZF` | Override fzf binary path (useful for testing) |
 | `GIT_WT_MISE` | Override mise binary path (useful for testing; set to a fake script to avoid calling real mise) |
 | `GIT_WT_CALLER` | Set to `wt` when invoked via the shell function |
