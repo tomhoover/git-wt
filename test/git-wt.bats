@@ -8,15 +8,11 @@ setup_file() { #{{{
 
 teardown_file() { #{{{
   echo "Cleaning up environment"
-  local master_root
-  master_root=$(git worktree list --porcelain \
-    | awk '/^worktree/{p=$2} /^branch/{if($2=="refs/heads/master"){print p; exit}}')
   run git worktree remove --force "$(pwd -P)+bats_dirty"
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_remote"
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_detach"
-  [[ -n "${master_root}" ]] && run git worktree remove --force "${master_root}+bats_xyz"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
   run git branch -D bats_remote
@@ -194,20 +190,20 @@ teardown() { #{{{
   assert_line -e '^ERROR: Worktree .* already exists$'
 } #}}}
 
-@test "git wt add bats_xyz master (create new branch from base)" { #{{{
-  local master_root
-  master_root=$(git worktree list --porcelain \
-    | awk '/^worktree/{p=$2} /^branch/{if($2=="refs/heads/master"){print p; exit}}')
-  run git worktree remove --force "$(pwd -P)+bats_xyz"
-  run git worktree remove --force "${master_root}+bats_xyz"
+@test "git wt add bats_xyz <base> (create new branch from base; worktree alongside base)" { #{{{
+  # Use the current branch as base — it always has a worktree and exists in CI.
+  local base_branch base_root
+  base_branch=$(git rev-parse --abbrev-ref HEAD)
+  base_root=$(pwd -P)
+  run git worktree remove --force "${base_root}+bats_xyz"
   run git branch -D bats_xyz
 
-  run -0 git wt add bats_xyz master
+  run -0 git wt add bats_xyz "${base_branch}"
   assert_output -p "Worktree created at:"
-  assert_output -p "(new branch from master)"
-  assert_output -p "${master_root}+bats_xyz"
+  assert_output -p "(new branch from ${base_branch})"
+  assert_output -p "${base_root}+bats_xyz"
 
-  run git worktree remove --force "${master_root}+bats_xyz"
+  run git worktree remove --force "${base_root}+bats_xyz"
   run git branch -D bats_xyz
 } #}}}
 
