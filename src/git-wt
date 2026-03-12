@@ -260,38 +260,40 @@ compdef _git_wt wt
 EOF
 } #}}}
 
+_list_worktrees_raw() { #{{{
+  # Emit one tab-separated line per worktree: <path>\t<head7>\t<branch>
+  # branch is empty string for detached HEAD, "(bare)" for bare repos.
+  git worktree list --porcelain \
+    | awk '
+        /^worktree/ { path = $2; head = ""; br = "" }
+        /^HEAD/     { head = substr($2, 1, 7) }
+        /^branch/   { br = $2; sub("refs/heads/", "", br) }
+        /^detached/ { br = "" }
+        /^bare/     { br = "(bare)" }
+        /^$/        { if (path != "") { print path "\t" head "\t" br; path = "" } }
+        END         { if (path != "") print path "\t" head "\t" br }
+      '
+} #}}}
+
 status_worktrees() { #{{{
   local cur_path
   cur_path=$(pwd -P)
-
-  local wt_path='' wt_branch='' marker='' files=''
-  while IFS= read -r line; do
-    case "$line" in
-      worktree\ *) wt_path="${line#worktree }" ;;
-      branch\ *) wt_branch="${line#branch refs/heads/}" ;;
-      HEAD\ *) ;;
-      "")
-        [[ -z "${wt_path}" ]] && continue
-        [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
-        if [[ ! -d "${wt_path}" ]]; then
-          files="${RED}broken (directory missing)${RESET}"
-        elif ! files=$(git -C "${wt_path}" status --short 2>/dev/null); then
-          files="${RED}broken (inaccessible)${RESET}"
-        else
-          files=$(printf '%s' "${files}" | tr '\n' ' ')
-          files="${files% }"
-          [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
-        fi
-        printf "%s ${BOLD}${GREEN}%s${RESET}  ${CYAN}[%s]${RESET}  %s\n" \
-          "${marker}" "${wt_path}" "${wt_branch:-detached}" "${files}"
-        wt_path=''
-        wt_branch=''
-        ;;
-    esac
-  done < <(
-    git worktree list --porcelain
-    echo
-  )
+  local wt_head # unused here; read for field alignment with list_worktrees
+  while IFS=$'\t' read -r wt_path wt_head wt_branch; do
+    local marker='' files=''
+    [[ "${wt_path}" == "${cur_path}" ]] && marker="${GREEN}*${RESET}" || marker=" "
+    if [[ ! -d "${wt_path}" ]]; then
+      files="${RED}broken (directory missing)${RESET}"
+    elif ! files=$(git -C "${wt_path}" status --short 2>/dev/null); then
+      files="${RED}broken (inaccessible)${RESET}"
+    else
+      files=$(printf '%s' "${files}" | tr '\n' ' ')
+      files="${files% }"
+      [[ -z "${files}" ]] && files="${GREEN}clean${RESET}" || files="${RED}${files}${RESET}"
+    fi
+    printf "%s ${BOLD}${GREEN}%s${RESET}  ${CYAN}[%s]${RESET}  %s\n" \
+      "${marker}" "${wt_path}" "${wt_branch:-detached}" "${files}"
+  done < <(_list_worktrees_raw)
 } #}}}
 
 _fzf_select_worktree() { #{{{
@@ -309,31 +311,33 @@ cd_worktree() { #{{{
     fzf_bin="fzf"
   fi
 
+  # Collect all worktree paths in a single git call
+  local -a all_paths=()
+  while IFS= read -r p; do all_paths+=("${p}"); done \
+    < <(git worktree list --porcelain | awk '/^worktree/{print $2}')
+  local main_root="${all_paths[0]}"
+
   if [[ "$#" -eq 0 ]]; then
-    local -a all=()
-    while IFS= read -r p; do all+=("${p}"); done \
-      < <(git worktree list --porcelain | awk '/^worktree/{print $2}')
-    local main_root="${all[0]}"
-    if [[ "${#all[@]}" -le 1 ]] || [[ -z "${fzf_bin}" ]]; then
+    if [[ "${#all_paths[@]}" -le 1 ]] || [[ -z "${fzf_bin}" ]]; then
       echo "${main_root}"
     else
-      _fzf_select_worktree "${fzf_bin}" "${all[@]}" || exit 1
+      _fzf_select_worktree "${fzf_bin}" "${all_paths[@]}" || exit 1
     fi
     return
   fi
 
-  local main_root
-  main_root=$(git worktree list --porcelain | awk 'NR==1{print $2}')
   local prefix="${main_root}+"
-
   local branch="${1//\//+}"
   local target="${prefix}${branch}"
 
   # Exact match
-  if git worktree list --porcelain | grep -Fxq "worktree ${target}"; then
-    echo "${target}"
-    return
-  fi
+  local p
+  for p in "${all_paths[@]}"; do
+    if [[ "${p}" == "${target}" ]]; then
+      echo "${target}"
+      return
+    fi
+  done
 
   # Prefix match: match q against any +-delimited segment of each linked worktree's
   # path suffix relative to the main repo root (e.g. "claude+testing" → segments
@@ -343,10 +347,10 @@ cd_worktree() { #{{{
   local -a matches=()
   while IFS= read -r match; do
     matches+=("${match}")
-  done < <(git worktree list --porcelain \
+  done < <(printf '%s\n' "${all_paths[@]}" \
     | awk -v main="${main_root}" -v q="${branch}" '
-        /^worktree/ {
-          path = $2
+        {
+          path = $0
           if (path == main) next
           base = main "+"
           if (substr(path, 1, length(base)) != base) next
@@ -375,43 +379,23 @@ list_worktrees() { #{{{
   # Note: pwd -P resolves symlinks; highlighting may not match if worktree was added via a symlinked path
   local cur_path
   cur_path=$(pwd -P)
-  local wt_path='' wt_head='' wt_branch='' dirty='' status_out=''
-  while IFS= read -r line; do
-    case "$line" in
-      worktree\ *) wt_path="${line#worktree }" ;;
-      HEAD\ *)
-        wt_head="${line#HEAD }"
-        wt_head="${wt_head:0:7}"
-        ;;
-      branch\ *) wt_branch="${line#branch refs/heads/}" ;;
-      detached) wt_branch="" ;;
-      bare) wt_branch="(bare)" ;;
-      "")
-        [[ -z "${wt_path}" ]] && continue
-        status_out=''
-        if [[ ! -d "${wt_path}" ]]; then
-          dirty=" ${RED}!! (directory missing)${RESET}"
-        elif ! status_out=$(git -C "${wt_path}" status --short 2>/dev/null); then
-          dirty=" ${RED}!! (inaccessible)${RESET}"
-        elif [[ -n "${status_out}" ]]; then
-          dirty=" ${RED}!${RESET}"
-        else
-          dirty=""
-        fi
-        if [[ "${wt_path}" == "${cur_path}" ]]; then
-          printf "* ${BOLD}${GREEN}%s${RESET}  %s [%s]%s\n" \
-            "${wt_path}" "${wt_head}" "${wt_branch:-detached}" "${dirty}"
-        else
-          printf "  %s  %s [%s]%s\n" \
-            "${wt_path}" "${wt_head}" "${wt_branch:-detached}" "${dirty}"
-        fi
-        wt_path='' wt_head='' wt_branch=''
-        ;;
-    esac
-  done < <(
-    git worktree list --porcelain
-    echo
-  )
+  while IFS=$'\t' read -r wt_path wt_head wt_branch; do
+    local dirty='' status_out=''
+    if [[ ! -d "${wt_path}" ]]; then
+      dirty=" ${RED}!! (directory missing)${RESET}"
+    elif ! status_out=$(git -C "${wt_path}" status --short 2>/dev/null); then
+      dirty=" ${RED}!! (inaccessible)${RESET}"
+    elif [[ -n "${status_out}" ]]; then
+      dirty=" ${RED}!${RESET}"
+    fi
+    if [[ "${wt_path}" == "${cur_path}" ]]; then
+      printf "* ${BOLD}${GREEN}%s${RESET}  %s [%s]%s\n" \
+        "${wt_path}" "${wt_head}" "${wt_branch:-detached}" "${dirty}"
+    else
+      printf "  %s  %s [%s]%s\n" \
+        "${wt_path}" "${wt_head}" "${wt_branch:-detached}" "${dirty}"
+    fi
+  done < <(_list_worktrees_raw)
 } #}}}
 
 missing_worktree_name() { #{{{
