@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
+## v0.21.1 (2026-03-12)
+
+### Bug Fixes
+- show resolved worktree name in remove success message [`55a49cd`](https://github.com/tomhoover/git-wt/commit/55a49cd)
+
+### Test
+- remove .git-wt-copy teardown_file cleanup [`b3dd9d7`](https://github.com/tomhoover/git-wt/commit/b3dd9d7)
+
+## v0.21.0 (2026-03-12)
+
+### Feature
+- copy untracked files/dirs to new worktree via .git-wt-copy [`c3cdba6`](https://github.com/tomhoover/git-wt/commit/c3cdba6)
+
+### Documentation
+- :robot: changelog file generated [`10c2356`](https://github.com/tomhoover/git-wt/commit/10c2356)
+
 ## v0.20.6 (2026-03-12)
 
 ### Documentation
