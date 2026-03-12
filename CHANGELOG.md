@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.23.0 (2026-03-12)
+
+### Feature
+- Honour NO_COLOR to disable colour output [`31c9ddc`](https://github.com/tomhoover/git-wt/commit/31c9ddc84a933e8d89ef9ec5036748ac315e0034)
+## v0.22.2 (2026-03-12)
+
+### CI
+- Fix Homebrew tap update trigger [`b397658`](https://github.com/tomhoover/git-wt/commit/b3976588a578254a1b052e3e9bd552c0591f56ce)
+## v0.22.1 (2026-03-12)
+
+### Test
+- Fix base-branch test to use current branch instead of 'master' [`2d12b59`](https://github.com/tomhoover/git-wt/commit/2d12b59f18bc64e14815ec0daf822f21caa6f565)
+## v0.22.0 (2026-03-12)
+
+### CI
+- Skip Claude code review for Dependabot PRs [`6878eb0`](https://github.com/tomhoover/git-wt/commit/6878eb0779eac0e4450a4634db7b5dd59b0d24dc)
+
+### Feature
+- Support optional base branch in git wt add [`3f87774`](https://github.com/tomhoover/git-wt/commit/3f87774baa0bc2d306fd1f6d66128d8c8859b9e6)
+- Add --cd flag to wt add and fix base branch worktree path [`a512597`](https://github.com/tomhoover/git-wt/commit/a512597ed3ef327cc5d37071189eb073b3a8b049)
 ## v0.21.4 (2026-03-12)
 
 ### CI

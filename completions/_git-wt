@@ -60,8 +60,10 @@ _git-wt() {
     argument)
       case ${line[1]} in
         add | a)
-          local -a branches
+          local -a branches opts
+          opts=(--cd)
           branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+          compadd -a opts
           _describe 'branch' branches
           ;;
         remove | rm | r)
@@ -114,6 +116,8 @@ _git_wt() {
     case "$subcmd" in
       add | a)
         local -a branches=(${(f)"$(git branch --format='%(refname:short)' 2>/dev/null)"})
+        local -a opts=(--cd)
+        compadd -a opts
         compadd -a branches
         ;;
       remove | rm | r)
