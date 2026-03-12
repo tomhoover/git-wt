@@ -19,9 +19,6 @@ teardown_file() { #{{{
   run git branch -D bats_ns/bats_xyz
   run git update-ref -d refs/remotes/origin/bats_remote
   run git worktree prune
-  rm -f "$(pwd -P)/.git-wt-copy"
-  rm -f "$(pwd -P)/.git-wt-copy-seed"
-  rm -rf "$(pwd -P)/.git-wt-copy-dir"
 } #}}}
 
 setup() { #{{{
