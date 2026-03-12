@@ -9,8 +9,8 @@ VERSION=0.22.2
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
-# Only use colors in interactive shells, not from crontab
-if [ -t 1 ]; then
+# Only use colors in interactive shells, not from crontab; honour NO_COLOR (https://no-color.org)
+if [ -t 1 ] && [[ -z "${NO_COLOR:-}" ]]; then
   RED=$(tput setaf 1)
   GREEN=$(tput setaf 2)
   MAGENTA=$(tput setaf 5)
