@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.22.1 (2026-03-12)
+
+### Test
+- Fix base-branch test to use current branch instead of 'master' [`2d12b59`](https://github.com/tomhoover/git-wt/commit/2d12b59f18bc64e14815ec0daf822f21caa6f565)
 ## v0.22.0 (2026-03-12)
 
 ### CI
