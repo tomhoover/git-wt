@@ -34,7 +34,7 @@ _git_wt() {
 
   case "$subcmd" in
     add | a)
-      mapfile -t COMPREPLY < <(compgen -W "$(_git_wt_branches)" -- "$cur")
+      mapfile -t COMPREPLY < <(compgen -W "--cd $(_git_wt_branches)" -- "$cur")
       ;;
     remove | rm | r)
       mapfile -t COMPREPLY < <(compgen -W "-f --force -d --delete-branch $(_git_wt_worktrees)" -- "$cur")

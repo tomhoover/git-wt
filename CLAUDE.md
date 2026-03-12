@@ -65,3 +65,5 @@ Examples:
 | `GIT_WT_FZF` | Override fzf binary path (useful for testing) |
 | `GIT_WT_MISE` | Override mise binary path (useful for testing; set to a fake script to avoid calling real mise) |
 | `GIT_WT_CALLER` | Set to `wt` when invoked via the shell function |
+| `GIT_WT_ADD_CD` | Set to any non-empty value to make `wt add` always cd into the new worktree (user-facing default for `--cd`) |
+| `GIT_WT_CD_FILE` | Temp file path written by the script when `--cd` is active; read by the `wt` shell function to perform the cd (internal, set by the shell function) |
