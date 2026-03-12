@@ -19,6 +19,12 @@ chmod +x ~/bin/git-wt
 
 Replace `~/bin/` with any directory on your `PATH` (e.g., `~/.local/bin/`).
 
+### Installation via Homebrew
+
+```bash
+brew install tomhoover/git-wt/git-wt
+```
+
 ### Manual install from source
 
 ```bash

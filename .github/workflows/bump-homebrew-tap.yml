@@ -1,0 +1,21 @@
+name: Update Homebrew Tap
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  homebrew:
+    name: Bump Homebrew formula
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: git-wt
+          formula-path: Formula/git-wt.rb
+          homebrew-tap: tomhoover/homebrew-git-wt
+          base-branch: master
+          tag-name: ${{ github.ref_name }}
+          download-url: https://github.com/tomhoover/git-wt/archive/refs/tags/${{ github.ref_name }}.tar.gz
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
