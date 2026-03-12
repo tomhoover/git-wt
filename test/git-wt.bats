@@ -504,11 +504,11 @@ teardown() { #{{{
   assert_line -e "^ERROR: Unknown option '--bogus'$"
 } #}}}
 
-@test "git wt remove (flag after worktree name is rejected)" { #{{{
+@test "git wt remove (extra arguments are rejected)" { #{{{
   run -1 git wt remove bats_xyz -d
-  assert_line -e "^ERROR: Flags must come before the worktree name: '-d'$"
-  run -1 git wt remove bats_xyz --force
-  assert_line -e "^ERROR: Flags must come before the worktree name: '--force'$"
+  assert_line -e "^ERROR: Too many arguments: unexpected '-d'$"
+  run -1 git wt remove bats_xyz extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
 } #}}}
 
 @test "git wt remove (worktree not found)" { #{{{

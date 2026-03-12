@@ -486,6 +486,10 @@ add_worktree() { #{{{
   local branch="${1}"
   local base="${2:-}"
   local cd_after="${3:-}"
+  if [[ "${branch}" == HEAD* ]]; then
+    error "Please provide a branch name, not a commit reference"
+    exit 1
+  fi
   local target_root="${REPO_ROOT}"
   if [[ -n "${base}" ]]; then
     local base_wt_path
@@ -500,10 +504,6 @@ add_worktree() { #{{{
     [[ -n "${base_wt_path}" ]] && target_root="${base_wt_path}"
   fi
   local target="${target_root}+${branch//\//+}"
-  if [[ "${branch}" == HEAD* ]]; then
-    error "Please provide a branch name, not a commit reference"
-    exit 1
-  fi
   if [[ -d "${target}" ]]; then
     error "Worktree directory '${target}' already exists"
     exit 1
@@ -652,12 +652,10 @@ process_arguments() { #{{{
         if [[ "$#" -ge 1 ]]; then
           local wt_name="${1}"
           shift
-          for arg in "$@"; do
-            if [[ "${arg}" == -* ]]; then
-              error "Flags must come before the worktree name: '${arg}'"
-              exit 1
-            fi
-          done
+          if [[ "$#" -ge 1 ]]; then
+            error "Too many arguments: unexpected '${1}'"
+            exit 1
+          fi
           local wt_path branch=""
           wt_path=$(cd_worktree "${wt_name}")
           branch=$(git worktree list --porcelain \
