@@ -1,12 +1,17 @@
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-SHELL       := /usr/bin/env bash
-SRC         := src/git-wt
-TEST_DIR    := test
-TEST_FILE   := $(TEST_DIR)/git-wt.bats
-BATS        := bats
-SHELLCHECK  := shellcheck
-SHFMT       := shfmt
+SHELL        := /usr/bin/env bash
+SRC          := src/git-wt
+TEST_DIR     := test
+TEST_FILE    := $(TEST_DIR)/git-wt.bats
+BATS         := bats
+SHELLCHECK   := shellcheck
+SHFMT        := shfmt
+GIT_CLIFF    := git-cliff
+
+# Release configuration — override these when copying to another project
+VERSION_FILE ?= src/git-wt
+VERSION_VAR  ?= VERSION
 
 # SHFMT_OPTS  := -i 4 -ln bash
 # -ln bash: explicit language flag; omitted because shfmt infers bash from the shebang
@@ -18,7 +23,7 @@ SHFMT_OPTS  := -i 2 -bn -ci
 # shellcheck options: warn on everything, target bash
 SHELLCHECK_OPTS := --shell=bash --severity=warning
 
-.PHONY: all lint shellcheck shfmt-check fmt test test-tap test-verbose deps clean clean-deps clean-worktrees check-tools help
+.PHONY: all lint shellcheck shfmt-check fmt test test-tap test-verbose deps clean clean-deps clean-worktrees check-tools release help
 
 # ── Default ───────────────────────────────────────────────────────────────────
 
@@ -96,6 +101,25 @@ check-tools: ## Verify required tools are installed
 		fi; \
 	done
 	@echo "All required tools found."
+
+# ── Release ───────────────────────────────────────────────────────────────────
+
+release: lint test ## Bump version, update CHANGELOG, commit, and tag (then: git push && git push --tags)
+	@git diff --quiet && git diff --cached --quiet \
+		|| { echo "ERROR: working tree is dirty — commit or stash first"; exit 1; }
+	@command -v $(GIT_CLIFF) &>/dev/null \
+		|| { echo "ERROR: git-cliff not found — run 'mise install'"; exit 1; }
+	@NEW_VERSION=$$($(GIT_CLIFF) --bumped-version | tr -d 'v'); \
+	echo "Bumping to v$${NEW_VERSION}"; \
+	$(GIT_CLIFF) --bump -o CHANGELOG.md; \
+	sed -i.bak -Ee "s/(^$(VERSION_VAR)=).*/\1$${NEW_VERSION}/" $(VERSION_FILE) \
+		&& rm $(VERSION_FILE).bak; \
+	git add CHANGELOG.md $(VERSION_FILE); \
+	git commit -m "chore: release v$${NEW_VERSION}"; \
+	git tag "v$${NEW_VERSION}"; \
+	echo ""; \
+	echo "Release v$${NEW_VERSION} ready. Run:"; \
+	echo "  git push && git push --tags"
 
 # ── Help ──────────────────────────────────────────────────────────────────────
 

@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure HEAD is on a named branch
+        run: git symbolic-ref HEAD || git checkout -b ci-branch
+
+      - uses: jdx/mise-action@v2
+
+      - name: Install bats dependencies
+        run: make deps
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test-tap
+
+  release:
+    name: Create GitHub Release
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # git-cliff needs full history + all tags
+
+      - uses: jdx/mise-action@v2
+
+      - name: Generate release notes
+        run: git cliff --latest --strip all | tail -n +3 > release-notes.md
+
+      - name: Package completions
+        run: tar -czf completions.tar.gz completions/
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --notes-file release-notes.md \
+            "src/git-wt#git-wt" \
+            "completions.tar.gz#completions.tar.gz"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
