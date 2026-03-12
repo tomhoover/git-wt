@@ -10,9 +10,16 @@ A lightweight `git worktree` wrapper that enforces a consistent naming conventio
 
 ## Installation
 
-Copy (or symlink) `src/git-wt` to a directory on your `PATH`:
+### Quick install (latest release)
 
-**Optional:** Install [fzf](https://github.com/junegunn/fzf) to enable interactive fuzzy selection when `cd` finds multiple matching worktrees.
+```bash
+curl -Lo ~/bin/git-wt https://github.com/tomhoover/git-wt/releases/latest/download/git-wt
+chmod +x ~/bin/git-wt
+```
+
+Replace `~/bin/` with any directory on your `PATH` (e.g., `~/.local/bin/`).
+
+### Manual install from source
 
 ```bash
 cp src/git-wt ~/.local/bin/git-wt
@@ -20,6 +27,8 @@ chmod +x ~/.local/bin/git-wt
 ```
 
 Because the script is named `git-wt`, git automatically exposes it as the `git wt` subcommand.
+
+**Optional:** Install [fzf](https://github.com/junegunn/fzf) to enable interactive fuzzy selection when `cd` finds multiple matching worktrees.
 
 ## Usage
 
