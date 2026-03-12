@@ -4,19 +4,43 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
-## Unreleased changes
+## v0.20.5 (2026-03-12)
+
+### Bug Fixes
+- suppress phantom detached entry in list and status output [`af8e5bd`](https://github.com/tomhoover/git-wt/commit/af8e5bd)
+
+### Documentation
+- :robot: changelog file generated [`b877d06`](https://github.com/tomhoover/git-wt/commit/b877d06)
+
+## v0.20.4 (2026-03-10)
+
+### Bug Fixes
+- wt cd nonexistent silently no-ops [`d1d7427`](https://github.com/tomhoover/git-wt/commit/d1d7427)
+
+## v0.20.3 (2026-03-10)
+
+### Bug Fixes
+- reject flags that appear after the worktree name in remove command [`85ad587`](https://github.com/tomhoover/git-wt/commit/85ad587)
+
+## v0.20.2 (2026-03-10)
+
+### Bug Fixes
+- distinguish directory missing vs inaccessible in list output [`ea4a6f3`](https://github.com/tomhoover/git-wt/commit/ea4a6f3)
+
+### Documentation
+- :robot: changelog file generated [`4e04a57`](https://github.com/tomhoover/git-wt/commit/4e04a57)
+
+## v0.20.1 (2026-03-11)
+
+### Bug Fixes
+- awk reads past detached-HEAD block when extracting branch for remove -d [`35e0522`](https://github.com/tomhoover/git-wt/commit/35e0522)
+
+## v0.20.0 (2026-03-10)
 
 ### Feature
 - automatically run mise trust on newly added worktree [`8dfc2cb`](https://github.com/tomhoover/git-wt/commit/8dfc2cb)
 
-### Bug Fixes
-- wt cd nonexistent silently no-ops [`d1d7427`](https://github.com/tomhoover/git-wt/commit/d1d7427)
-- reject flags that appear after the worktree name in remove command [`85ad587`](https://github.com/tomhoover/git-wt/commit/85ad587)
-- distinguish directory missing vs inaccessible in list output [`ea4a6f3`](https://github.com/tomhoover/git-wt/commit/ea4a6f3)
-- awk reads past detached-HEAD block when extracting branch for remove -d [`35e0522`](https://github.com/tomhoover/git-wt/commit/35e0522)
-
 ### Documentation
-- :robot: changelog file generated [`4e04a57`](https://github.com/tomhoover/git-wt/commit/4e04a57)
 - :robot: changelog file generated [`fb93ac8`](https://github.com/tomhoover/git-wt/commit/fb93ac8)
 
 ## v0.19.4 (2026-03-10)
