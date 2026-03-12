@@ -46,7 +46,7 @@ git wt [options] <command> [<command_options>] [<worktree>]
 
 | Command | Aliases | Description |
 |---------|---------|-------------|
-| `add <branch>` | `a` | Create a worktree for `<branch>` (checks out existing or creates new); copies files listed in `.git-wt-copy` if present |
+| `add <branch> [<base>]` | `a` | Create a worktree for `<branch>` (checks out existing or creates new branch from `HEAD`); if `<base>` is given, always creates a new branch from that base; copies files listed in `.git-wt-copy` if present |
 | `list` | `l`, `ls` | List all worktrees; highlights the current one; appends a '!' to indicate a dirty worktree) |
 | `remove [-f\|--force] [-d\|--delete-branch] <branch>` | `r`, `rm` | Remove the worktree for `<branch>`; `-f` removes a dirty worktree; `-d` also deletes the branch (uses `git branch -d`, refuses if unmerged) |
 | `prune` | `p`, `pr` | Prune stale worktree references |
@@ -66,7 +66,8 @@ git wt [options] <command> [<command_options>] [<worktree>]
 ### Examples
 
 ```bash
-git wt add feature-x      # creates ../repo+feature-x
+git wt add feature-x      # creates ../repo+feature-x (from HEAD, or checks out existing branch)
+git wt add feature-x main # creates ../repo+feature-x as a new branch from main
 git wt ls                 # list all worktrees
 git wt remove feature-x      # remove the worktree
 git wt remove -f feature-x   # force-remove a dirty worktree (branch untouched)

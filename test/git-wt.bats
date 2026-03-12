@@ -63,7 +63,7 @@ teardown() { #{{{
   assert_output -p '-h'
   assert_output -p '--debug'
 
-  assert_output -p 'a | add         ) add a worktree'
+  assert_output -p 'a | add         ) add a worktree; optional [<base>]'
   assert_output -p 'l | ls | list'
   assert_output -p 'r | rm | remove'
   assert_output -p '--force'
@@ -188,6 +188,26 @@ teardown() { #{{{
 
   run -1 git wt add bats_xyz
   assert_line -e '^ERROR: Worktree .* already exists$'
+} #}}}
+
+@test "git wt add bats_xyz master (create new branch from base)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  run -0 git wt add bats_xyz master
+  assert_output -p "Worktree created at:"
+  assert_output -p "(new branch from master)"
+
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add bats_xyz (nonexistent base fails with error)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  run -1 git wt add bats_xyz nonexistent_base_xyz
+  assert_output -p "ERROR: Failed to create worktree for 'bats_xyz' from 'nonexistent_base_xyz'"
 } #}}}
 
 @test "git wt add from remote-only branch (DWIM)" { #{{{

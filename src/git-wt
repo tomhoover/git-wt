@@ -472,6 +472,7 @@ copy_worktree_files() { #{{{
 
 add_worktree() { #{{{
   local branch="${1}"
+  local base="${2:-}"
   local target="${REPO_ROOT}+${branch//\//+}"
   if [[ "${branch}" == HEAD* ]]; then
     error "Please provide a branch name, not a commit reference"
@@ -481,9 +482,19 @@ add_worktree() { #{{{
     error "Worktree directory '${target}' already exists"
     exit 1
   fi
-  # Try checking out existing branch first (handles DWIM from remotes), then create a new one
+  # Try checking out existing branch first (handles DWIM from remotes), then create a new one.
+  # If a base is specified, skip straight to creating a new branch from that base.
   local branch_note git_out
-  if git_out=$(git worktree add "${target}" "${branch}" 2>&1); then
+  if [[ -n "${base}" ]]; then
+    if git_out=$(git worktree add -b "${branch}" "${target}" "${base}" 2>&1); then
+      branch_note="new branch from ${base}"
+      echo "${git_out}"
+    else
+      echo "${git_out}" >&2
+      error "Failed to create worktree for '${branch}' from '${base}'"
+      exit 1
+    fi
+  elif git_out=$(git worktree add "${target}" "${branch}" 2>&1); then
     branch_note="existing branch"
     [[ -n "${git_out}" ]] && echo "${git_out}"
   else
@@ -515,7 +526,7 @@ Usage: wt [options] <command> [<worktree>]
         --debug         ) debugging info displayed
 
     Commands:
-        a | add         ) add a worktree
+        a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
@@ -539,7 +550,7 @@ Usage: git-wt [options] <command> [<worktree>]
         --debug         ) debugging info displayed
 
     Commands:
-        a | add         ) add a worktree
+        a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
@@ -570,7 +581,7 @@ process_arguments() { #{{{
       a | add) #{{{
         shift
         if [[ "$#" -ge 1 ]]; then
-          add_worktree "${1}"
+          add_worktree "${1}" "${2:-}"
         else
           missing_worktree_name "add"
         fi
