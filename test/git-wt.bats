@@ -73,7 +73,7 @@ setup() { #{{{
 } #}}}
 
 @test "git wt version matches VERSION in script" { #{{{
-  script_version=$(grep '^VERSION=' "$DIR/../src/git-wt" | cut -d'"' -f2)
+  script_version=$(grep '^VERSION=' "$DIR/../src/git-wt" | cut -d'=' -f2 | tr -d '"')
   run -0 git wt version
   assert_output "git-wt version ${script_version}"
 } #}}}
