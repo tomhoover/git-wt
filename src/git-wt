@@ -302,6 +302,70 @@ _fzf_select_worktree() { #{{{
   printf '%s\n' "$@" | "${fzf_cmd}" --height=40% --reverse --no-sort || return 1
 } #}}}
 
+_match_worktree() { #{{{
+  # Match a query against worktrees by exact path, prefix, or segment.
+  # Outputs: path<TAB>branch  (branch is empty string for detached HEAD)
+  # Returns 1 if no match or fzf is cancelled.
+  local query="${1}" fzf_bin="${2:-}"
+
+  local -a wt_paths=() wt_branches=()
+  local _p _h _b
+  while IFS=$'\t' read -r _p _h _b; do
+    wt_paths+=("${_p}")
+    wt_branches+=("${_b}")
+  done < <(_list_worktrees_raw)
+
+  local main_root="${wt_paths[0]}"
+  local prefix="${main_root}+"
+  local q="${query//\//+}"
+  local target="${prefix}${q}"
+
+  # Exact match
+  local i
+  for ((i = 0; i < ${#wt_paths[@]}; i++)); do
+    if [[ "${wt_paths[i]}" == "${target}" ]]; then
+      printf '%s\t%s\n' "${wt_paths[i]}" "${wt_branches[i]}"
+      return 0
+    fi
+  done
+
+  # Prefix / segment match against linked worktrees only.
+  # Matches if the path suffix starts with q, or contains +q as a segment boundary.
+  local -a match_paths=() match_branches=()
+  for ((i = 0; i < ${#wt_paths[@]}; i++)); do
+    local mp="${wt_paths[i]}"
+    [[ "${mp}" == "${main_root}" ]] && continue
+    [[ "${mp}" != "${prefix}"* ]] && continue
+    local suffix="${mp#"${prefix}"}"
+    if [[ "${suffix}" == "${q}"* || "${suffix}" == *"+${q}"* ]]; then
+      match_paths+=("${mp}")
+      match_branches+=("${wt_branches[i]}")
+    fi
+  done
+
+  if [[ "${#match_paths[@]}" -eq 1 ]]; then
+    printf '%s\t%s\n' "${match_paths[0]}" "${match_branches[0]}"
+  elif [[ "${#match_paths[@]}" -eq 0 ]]; then
+    error "Worktree '${q}' not found"
+    return 1
+  elif [[ -n "${fzf_bin}" ]]; then
+    local selected
+    selected=$(_fzf_select_worktree "${fzf_bin}" "${match_paths[@]}") || return 1
+    for ((i = 0; i < ${#match_paths[@]}; i++)); do
+      if [[ "${match_paths[i]}" == "${selected}" ]]; then
+        printf '%s\t%s\n' "${selected}" "${match_branches[i]}"
+        return 0
+      fi
+    done
+  else
+    error "Ambiguous worktree '${q}' — matches:"
+    for mp in "${match_paths[@]}"; do
+      echo "  ${mp#"${prefix}"}" >&2
+    done
+    return 1
+  fi
+} #}}}
+
 cd_worktree() { #{{{
   # Resolve fzf: GIT_WT_FZF overrides auto-detection (useful for testing)
   local fzf_bin=''
@@ -311,13 +375,13 @@ cd_worktree() { #{{{
     fzf_bin="fzf"
   fi
 
-  # Collect all worktree paths in a single git call
-  local -a all_paths=()
-  while IFS= read -r p; do all_paths+=("${p}"); done \
-    < <(git worktree list --porcelain | awk '/^worktree/{print $2}')
-  local main_root="${all_paths[0]}"
-
   if [[ "$#" -eq 0 ]]; then
+    local -a all_paths=()
+    local _p _h _b
+    while IFS=$'\t' read -r _p _h _b; do
+      all_paths+=("${_p}")
+    done < <(_list_worktrees_raw)
+    local main_root="${all_paths[0]}"
     if [[ "${#all_paths[@]}" -le 1 ]] || [[ -z "${fzf_bin}" ]]; then
       echo "${main_root}"
     else
@@ -326,53 +390,9 @@ cd_worktree() { #{{{
     return
   fi
 
-  local prefix="${main_root}+"
-  local branch="${1//\//+}"
-  local target="${prefix}${branch}"
-
-  # Exact match
-  local p
-  for p in "${all_paths[@]}"; do
-    if [[ "${p}" == "${target}" ]]; then
-      echo "${target}"
-      return
-    fi
-  done
-
-  # Prefix match: match q against any +-delimited segment of each linked worktree's
-  # path suffix relative to the main repo root (e.g. "claude+testing" → segments
-  # "claude" and "testing"), so that both branch name and parent path components match.
-  # Uses index() rather than split(...,"+") to avoid BSD awk treating "+" as an ERE
-  # quantifier with no preceding atom.
-  local -a matches=()
-  while IFS= read -r match; do
-    matches+=("${match}")
-  done < <(printf '%s\n' "${all_paths[@]}" \
-    | awk -v main="${main_root}" -v q="${branch}" '
-        {
-          path = $0
-          if (path == main) next
-          base = main "+"
-          if (substr(path, 1, length(base)) != base) next
-          suffix = substr(path, length(base) + 1)
-          if (substr(suffix, 1, length(q)) == q || index(suffix, "+" q) > 0) print path
-        }
-      ')
-
-  if [[ "${#matches[@]}" -eq 1 ]]; then
-    echo "${matches[0]}"
-  elif [[ "${#matches[@]}" -eq 0 ]]; then
-    error "Worktree '${branch}' not found"
-    exit 1
-  elif [[ -n "${fzf_bin}" ]]; then
-    _fzf_select_worktree "${fzf_bin}" "${matches[@]}" || exit 1
-  else
-    error "Ambiguous worktree '${branch}' — matches:"
-    for match in "${matches[@]}"; do
-      echo "  ${match#"${prefix}"}" >&2
-    done
-    exit 1
-  fi
+  local match
+  match=$(_match_worktree "${1}" "${fzf_bin}") || exit 1
+  echo "${match%%	*}"
 } #}}}
 
 list_worktrees() { #{{{
@@ -658,19 +678,24 @@ process_arguments() { #{{{
             error "Too many arguments: unexpected '${1}'"
             exit 1
           fi
-          local wt_path branch=""
-          wt_path=$(cd_worktree "${wt_name}")
-          branch=$(git worktree list --porcelain \
-            | awk -v p="${wt_path}" \
-              '$0=="worktree "p{f=1; next} f && /^$/{exit} f && /^branch/{sub("refs/heads/",""); print $2; exit}')
+          local fzf_bin=''
+          if [[ -n "${GIT_WT_FZF:-}" ]]; then
+            fzf_bin="${GIT_WT_FZF}"
+          elif command -v fzf &>/dev/null && [[ -t 2 ]]; then
+            fzf_bin="fzf"
+          fi
+          local match wt_path wt_branch
+          match=$(_match_worktree "${wt_name}" "${fzf_bin}") || exit 1
+          IFS=$'\t' read -r wt_path wt_branch <<<"${match}"
+          [[ "${wt_branch}" == "(bare)" ]] && wt_branch=''
           # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
           # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
           git worktree remove ${force:+-f} "${wt_path}"
-          success "Worktree '${branch:-${wt_name}}' removed successfully"
+          success "Worktree '${wt_branch:-${wt_name}}' removed successfully"
           if [[ -n "${delete_branch}" ]]; then
-            if [[ -n "${branch}" ]]; then
-              git branch -d "${branch}"
-              success "Branch '${branch}' deleted"
+            if [[ -n "${wt_branch}" ]]; then
+              git branch -d "${wt_branch}"
+              success "Branch '${wt_branch}' deleted"
             else
               warn "Cannot delete branch: worktree was in detached HEAD state"
             fi
