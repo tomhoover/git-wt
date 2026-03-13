@@ -144,6 +144,11 @@ teardown() { #{{{
   assert_output -p "ERROR: 'add' requires a worktree name"
 } #}}}
 
+@test "git wt add (extra positional args rejected)" { #{{{
+  run -1 git wt add bats_xyz master extra
+  assert_output -p "ERROR: Too many arguments: unexpected 'extra'"
+} #}}}
+
 @test "git wt add HEAD (commit reference rejected)" { #{{{
   run -1 git wt add HEAD
   assert_output -p "ERROR: Please provide a branch name, not a commit reference"
