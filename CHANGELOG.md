@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.23.1 (2026-03-13)
+
+### Bug Fixes
+- Validate add_worktree early and reject extra args in remove [`29f7ab4`](https://github.com/tomhoover/git-wt/commit/29f7ab40f267ab00b8ecbbea63efcf95e3c4dc3e)
+- Reject extra positional args in add (>2 args after flags) [`0b09280`](https://github.com/tomhoover/git-wt/commit/0b092802f74132c000fd73d76313fc1a22ae0b2b)
+- Correct .git-wt-copy warning to say 'source worktree' not 'main worktree' [`2a03420`](https://github.com/tomhoover/git-wt/commit/2a03420a9323d8d71a71c43ad7a706278dc03a1f)
+
+### Chore
+- Guard 'make release' against non-main worktrees [`f001ab0`](https://github.com/tomhoover/git-wt/commit/f001ab0d41c3b78f208bec078388d0b1ab7cd888)
+
+### Documentation
+- Clarify remove, --cd, .git-wt-copy, and cd matching behaviour [`3759d60`](https://github.com/tomhoover/git-wt/commit/3759d605371dcf0f575c4e78b6c74e4b5e803fe7)
+- Update inline -h help for cd to mention partial match and fzf [`fe16cb2`](https://github.com/tomhoover/git-wt/commit/fe16cb25c85911a8a3140293c535a3dca28c99fe)
+- Add additional examples to -h [`e52415e`](https://github.com/tomhoover/git-wt/commit/e52415ee370ad63aa58452e40a2d86bf0b640852)
+
+### Refactor
+- Reduce git worktree list calls and share parser [`5f88bf9`](https://github.com/tomhoover/git-wt/commit/5f88bf9ba83d964fd7ed78bfd4770f0b2e59ca7d)
+- Deduplicate maybe_mise_trust and copy_worktree_files in add_worktree [`f28d991`](https://github.com/tomhoover/git-wt/commit/f28d99138bf2ea63d134c43c32cfc953afd2fd64)
+- Eliminate second git worktree list call in remove [`1e32836`](https://github.com/tomhoover/git-wt/commit/1e328369aa556ce8601784497a836fdc7efb39c0)
+
+### Build
+- Bump actions/checkout from 4 to 6 (#16) [`dc45d1a`](https://github.com/tomhoover/git-wt/commit/dc45d1a9b773bf046464decf32226361493251ab)
+- Bump jdx/mise-action from 2 to 3 (#17) [`f1652a7`](https://github.com/tomhoover/git-wt/commit/f1652a74a0b97930ee6cbad3780266bf035e1a07)
 ## v0.23.0 (2026-03-12)
 
 ### Feature
