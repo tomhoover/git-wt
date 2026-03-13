@@ -560,7 +560,7 @@ Usage: wt [options] <command> [<worktree>]
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
-        c | cd          ) cd into worktree; no arg = main worktree
+        c | cd          ) cd into worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector)
         s | st | status ) show git status across all worktrees
         completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
         init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")
@@ -584,7 +584,7 @@ Usage: git-wt [options] <command> [<worktree>]
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
         p | pr | prune  ) prune worktrees
-        c | cd          ) print path to worktree; no arg = main worktree (use: cd "\$(git wt cd [<worktree>])")
+        c | cd          ) print path to worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector) (use: cd "\$(git wt cd [<worktree>])")
         s | st | status ) show git status across all worktrees
         completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
         init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")
