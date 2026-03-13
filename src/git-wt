@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
 
-# set -e: exit script immediately upon error
-# set -u: treat unset variables as an error
-# set -o pipefail: cause a pipeline to fail, if any command within it fails
 set -eu -o pipefail
 
 VERSION=0.23.0
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
-# Only use colors in interactive shells, not from crontab; honor NO_COLOR (https://no-color.org)
+# Only use colors in interactive shells, not from crontab; honor NO_COLOR (https://no-color.org) #{{{
 if [ -t 1 ] && [[ -z "${NO_COLOR:-}" ]]; then
   RED=$(tput setaf 1)
   GREEN=$(tput setaf 2)
@@ -24,7 +21,7 @@ else
   CYAN=
   BOLD=
   RESET=
-fi
+fi #}}}
 
 error() { #{{{
   echo "${RED}ERROR: ${1}${RESET}" >&2
@@ -568,7 +565,8 @@ usage() { #{{{
     cat <<EOF
 ${CYAN}
 Usage: wt [options] <command> [<worktree>]
-       wt [--debug] remove [-f|--force] [-d|--delete-branch] <worktree>
+       wt [options] add [--cd] <worktree> [<base>]
+       wt [options] remove [-f|--force] [-d|--delete-branch] <worktree>
        wt cd [<worktree>]
 
     Options:
@@ -592,7 +590,8 @@ EOF
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
-       git wt [--debug] remove [-f|--force] [-d|--delete-branch] <worktree>
+       git wt [options] add [--cd] <worktree> [<base>]
+       git wt [options] remove [-f|--force] [-d|--delete-branch] <worktree>
        cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
@@ -768,7 +767,7 @@ process_arguments() { #{{{
   done
 } #}}}
 
-case "${1:-}" in
+case "${1:-}" in #{{{
   "" | completion | init | v | version | -h) ;;
   *)
     if ! git rev-parse --git-dir &>/dev/null; then
@@ -777,7 +776,7 @@ case "${1:-}" in
     fi
     REPO_ROOT="$(git rev-parse --show-toplevel)"
     ;;
-esac
+esac #}}}
 
 if [[ "$#" -eq 0 ]]; then
   usage
