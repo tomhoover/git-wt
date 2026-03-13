@@ -623,6 +623,10 @@ process_arguments() { #{{{
         done
         [[ -n "${GIT_WT_ADD_CD:-}" && "${PROG}" == "wt" ]] && cd_after=true
         if [[ "${#add_args[@]}" -ge 1 ]]; then
+          if [[ "${#add_args[@]}" -gt 2 ]]; then
+            error "Too many arguments: unexpected '${add_args[2]}'"
+            exit 1
+          fi
           add_worktree "${add_args[0]}" "${add_args[1]:-}" "${cd_after}"
         else
           missing_worktree_name "add"
