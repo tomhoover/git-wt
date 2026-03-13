@@ -458,7 +458,7 @@ copy_worktree_files() { #{{{
     local src="${main_root}/${entry}"
     local dst="${target}/${entry}"
     if [[ ! -e "${src}" ]]; then
-      warn ".git-wt-copy: '${entry}' not found in main worktree, skipping"
+      warn ".git-wt-copy: '${entry}' not found in source worktree, skipping"
       continue
     fi
     if [[ -e "${dst}" ]]; then
