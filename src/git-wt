@@ -9,7 +9,7 @@ VERSION=0.23.0
 PROG="${GIT_WT_CALLER:-git wt}"
 REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
-# Only use colors in interactive shells, not from crontab; honour NO_COLOR (https://no-color.org)
+# Only use colors in interactive shells, not from crontab; honor NO_COLOR (https://no-color.org)
 if [ -t 1 ] && [[ -z "${NO_COLOR:-}" ]]; then
   RED=$(tput setaf 1)
   GREEN=$(tput setaf 2)
@@ -535,14 +535,12 @@ add_worktree() { #{{{
   fi
   echo "${GREEN}Worktree created at: ${target}${RESET} ${CYAN}(${branch_note})${RESET}"
   if [[ -n "${cd_after}" && "${PROG}" == "wt" && -n "${GIT_WT_CD_FILE:-}" ]]; then
-    maybe_mise_trust "${target}"
-    copy_worktree_files "${REPO_ROOT}" "${target}"
     echo "${target}" >"${GIT_WT_CD_FILE}"
   else
     echo "    ${MAGENTA}cd '${target}'${RESET}"
-    maybe_mise_trust "${target}"
-    copy_worktree_files "${REPO_ROOT}" "${target}"
   fi
+  maybe_mise_trust "${target}"
+  copy_worktree_files "${REPO_ROOT}" "${target}"
 } #}}}
 
 usage() { #{{{
