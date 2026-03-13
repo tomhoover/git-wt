@@ -105,6 +105,10 @@ check-tools: ## Verify required tools are installed
 # ── Release ───────────────────────────────────────────────────────────────────
 
 release: lint test ## Bump version, update CHANGELOG, commit, and tag (then: git push && git push --tags)
+	@main_root=$$(git worktree list --porcelain | awk 'NR==1{print $$2}'); \
+	cur=$$(git rev-parse --show-toplevel); \
+	[[ "$$cur" == "$$main_root" ]] \
+		|| { echo "ERROR: 'make release' must be run from the main worktree ($$main_root)"; exit 1; }
 	@git diff --quiet && git diff --cached --quiet \
 		|| { echo "ERROR: working tree is dirty — commit or stash first"; exit 1; }
 	@command -v $(GIT_CLIFF) &>/dev/null \
