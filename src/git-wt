@@ -21,7 +21,7 @@ else
   MAGENTA=
   CYAN=
   BOLD=
-  ITALIC=$(tput sitm)
+  ITALIC=
   RESET=
 fi #}}}
 
