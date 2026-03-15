@@ -39,16 +39,34 @@ Because the script is named `git-wt`, git automatically exposes it as the `git w
 ## Usage
 
 ```
-git wt [options] <command> [<worktree>] [<command_options>]
+git wt [options] <command> [--] <positional-args>
 ```
 
-### Commands
+_NOTE: Global options must appear before the command. Command options may appear before or after positional arguments. Use `--` to end command option parsing when needed._
+
+### Options:
+
+| Option | Description |
+|--------|-------------|
+| `-h` | Show help |
+| `--debug` | Enable bash trace (`set -x`) |
+
+### Command options:
+_Command options apply only to the selected command._
+
+| Command | Option | Description |
+|--------|----------------|-------------|
+| `add` | `--cd` | changes into the new worktree immediately |
+| `remove` | `-f` \| `--force` | removes a dirty worktree |
+| `remove` | `-d` \| `--delete-branch` | also deletes the branch using `git branch -d` |
+
+### Commands:
 
 | Command | Aliases | Description |
 |---------|---------|-------------|
-| `add <branch> [<base>] [--cd]` | `a` | <ul><li>Create a worktree for `<branch>` (checks out existing or creates new branch from `HEAD`)</li><li>if `<base>` is given, always creates a new branch from that base</li><li>`--cd` changes into the new worktree immediately (requires the `wt` shell function)</li><li>copies files listed in `.git-wt-copy`</li><li>options may appear before or after positional arguments</li></ul> |
+| `add <branch> [<base>] [--cd]` | `a` | <ul><li>Create a worktree for `<branch>` (checks out existing or creates new branch from `HEAD`)</li><li>if `<base>` is given, always creates a new branch from that base</li><li>`--cd` changes into the new worktree immediately (requires the `wt` shell function)</li><li>copies files listed in `.git-wt-copy`</li></ul> |
 | `list` | `l`, `ls` | <ul><li>List all worktrees</li><li>highlights the current one</li><li>appends a '!' to indicate a dirty worktree)</li></ul> |
-| `remove <branch> [-f\|--force] [-d\|--delete-branch]` | `r`, `rm` | <ul><li>Remove the worktree for `<branch>`</li><li>`-f` removes a dirty worktree</li><li>`-d` also deletes the branch using `git branch -d` (refuses if unmerged — `-f` does **not** force branch deletion)</li><li>options may appear before or after `<branch>`</li></ul> |
+| `remove <branch> [-f\|--force] [-d\|--delete-branch]` | `r`, `rm` | <ul><li>Remove the worktree for `<branch>`</li><li>`-f` removes a dirty worktree</li><li>`-d` also deletes the branch using `git branch -d` (refuses if unmerged — `-f` does **not** force branch deletion)</li></ul> |
 | `prune` | `p`, `pr` | Prune stale worktree references |
 | `cd [<branch>]` | `c` | <ul><li>Print path to worktree</li><li>accepts exact, prefix, or segment match</li><li>no arg = switch to main worktree, or launches `fzf` selector when multiple worktrees exist (use with `cd` — see below)</li></ul> |
 | `status` | `s`, `st` | Show git status across all worktrees |
@@ -56,14 +74,7 @@ git wt [options] <command> [<worktree>] [<command_options>]
 | `init <shell>` | | Output shell integration `wt` function (`bash` or `zsh`) |
 | `version` | `v` | Print version |
 
-### Options
-
-| Option | Description |
-|--------|-------------|
-| `-h` | Show help |
-| `--debug` | Enable bash trace (`set -x`) |
-
-### Examples
+### Examples:
 
 ```bash
 git wt add feature-x           # creates ../repo+feature-x (from HEAD, or checks out existing branch)
@@ -160,7 +171,7 @@ config/local.yml
 tmp/cache/
 ```
 
-###Rules:
+### Rules:
 - Paths are relative to the repo root; absolute paths and paths containing `..` are rejected with a warning.
 - Directory entries conventionally end with `/` but the trailing slash is optional.
 - If a listed path does not exist in the source worktree, a warning is printed and the entry is skipped — the `add` still succeeds.
