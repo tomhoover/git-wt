@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.24.1 (2026-03-15)
+
+### Bug Fixes
+- Fixed failing ci test on github [`9815b00`](https://github.com/tomhoover/git-wt/commit/9815b0024fbb57cacd20768c1bd8e5d55399a813)
 ## v0.24.0 (2026-03-15)
 
 ### Feature
