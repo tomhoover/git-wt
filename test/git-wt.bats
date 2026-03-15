@@ -53,14 +53,14 @@ teardown() { #{{{
 
 @test "git wt (no args) shows usage" { #{{{
   run -0 git-wt
-  assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
+  assert_line -n 0 'Usage: git-wt [options] <command> [--] <positional-args>'
   run -0 git wt
-  assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
+  assert_line -n 0 'Usage: git-wt [options] <command> [--] <positional-args>'
 } #}}}
 
 @test "git wt -h shows usage and all options" { #{{{
   run -0 git wt -h
-  assert_line -n 0 'Usage: git-wt [options] <command> [<worktree>]'
+  assert_line -n 0 'Usage: git-wt [options] <command> [--] <positional-args>'
   assert_output -p '-h'
   assert_output -p '--debug'
 

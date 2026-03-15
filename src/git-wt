@@ -8,20 +8,22 @@ REPO_ROOT='' # set by the entry-point guard for commands that require a git repo
 
 # Only use colors in interactive shells, not from crontab; honor NO_COLOR (https://no-color.org) #{{{
 if [ -t 1 ] && [[ -z "${NO_COLOR:-}" ]]; then
-  RED=$(tput setaf 1)
-  GREEN=$(tput setaf 2)
-  MAGENTA=$(tput setaf 5)
-  CYAN=$(tput setaf 6)
-  BOLD=$(tput bold)
-  ITALIC=$(tput sitm)
-  RESET=$(tput sgr0)
+  RED=$(tput setaf 1 2>/dev/null || true)
+  GREEN=$(tput setaf 2 2>/dev/null || true)
+  MAGENTA=$(tput setaf 5 2>/dev/null || true)
+  CYAN=$(tput setaf 6 2>/dev/null || true)
+  BOLD=$(tput bold 2>/dev/null || true)
+  ITALICS_ON=$(tput sitm 2>/dev/null || true)
+  ITALICS_OFF=$(tput ritm 2>/dev/null || tput sgr0 2>/dev/null || true)
+  RESET=$(tput sgr0 2>/dev/null || true)
 else
   RED=
   GREEN=
   MAGENTA=
   CYAN=
   BOLD=
-  ITALIC=
+  ITALICS_ON=
+  ITALICS_OFF=
   RESET=
 fi #}}}
 
@@ -569,24 +571,29 @@ add_worktree() { #{{{
 } #}}}
 
 usage() { #{{{
+  # 'git wt --help' invokes the git help system and fails with “No manual entry for git-wt”. '--help' is therefore not supported.
   if [[ "${PROG}" == "wt" ]]; then
     cat <<EOF
 ${CYAN}
-Usage: wt [options] <command> [<worktree>]
-       wt [options] add <worktree> [<base>] [--cd]
-       wt [options] remove <worktree> [-f|--force] [-d|--delete-branch]
+Usage: wt [options] <command> [--] <positional-args>
+       wt [options] add [--] <worktree> [<base>]
+       wt [options] remove [--] <worktree>
        wt cd [<worktree>]
 
     Options:
         -h              ) help
         --debug         ) debugging info displayed
 
+    Command options:
+        add             ) --cd
+        remove          ) -f | --force, -d | --delete-branch
+
     Commands:
         a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
-                          ${ITALIC}NOTE: 'add' option (--cd) may appear before or after <worktree> [<base>]${CYAN}
+                          ${ITALICS_ON}NOTE: 'add' option (--cd) may appear before or after '<worktree> [<base>]'${ITALICS_OFF}${CYAN}
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
-                          ${ITALIC}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${CYAN}
+                          ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
         c | cd          ) cd into worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector)
         s | st | status ) show git status across all worktrees
@@ -598,22 +605,26 @@ EOF
   else
     cat <<EOF
 ${CYAN}
-Usage: git-wt [options] <command> [<worktree>]
-       git wt [options] <command> [<worktree>]
-       git wt [options] add <worktree> [<base>] [--cd]
-       git wt [options] remove <worktree> [-f|--force] [-d|--delete-branch]
+Usage: git-wt [options] <command> [--] <positional-args>
+       git wt [options] <command> [--] <positional-args>
+       git wt [options] add [--] <worktree> [<base>]
+       git wt [options] remove [--] <worktree>
        cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
         -h              ) help
         --debug         ) debugging info displayed
 
+    Command options:
+        add             ) --cd
+        remove          ) -f | --force, -d | --delete-branch
+
     Commands:
         a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
-                          ${ITALIC}NOTE: 'add' option (--cd) may appear before or after <worktree> [<base>]${CYAN}
+                          ${ITALICS_ON}NOTE: 'add' option (--cd) may appear before or after '<worktree> [<base>]'${ITALICS_OFF}${CYAN}
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
-                          ${ITALIC}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${CYAN}
+                          ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
         c | cd          ) print path to worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector) (use: cd "\$(git wt cd [<worktree>])")
         s | st | status ) show git status across all worktrees
