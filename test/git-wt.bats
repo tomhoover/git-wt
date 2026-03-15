@@ -12,6 +12,7 @@ teardown_file() { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_remote"
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  rm -rf "$(pwd -P)+bats_ns+bats_xyz"
   run git worktree remove --force "$(pwd -P)+bats_detach"
   run git branch -D bats_dirty
   run git branch -D bats_xyz
@@ -142,6 +143,11 @@ teardown() { #{{{
   assert_output -p "ERROR: 'add' requires a worktree name"
   run -1 git wt add
   assert_output -p "ERROR: 'add' requires a worktree name"
+} #}}}
+
+@test "git wt add (unknown option)" { #{{{
+  run -1 git wt add --bogus bats_xyz
+  assert_line -e "^ERROR: Unknown option '--bogus'$"
 } #}}}
 
 @test "git wt add (extra positional args rejected)" { #{{{
@@ -281,6 +287,7 @@ teardown() { #{{{
 
 @test "git wt add bats_ns/bats_xyz (branch with slash uses + in path)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  rm -rf "$(pwd -P)+bats_ns+bats_xyz"
   run git branch -D bats_ns/bats_xyz
 
   run -0 git wt add bats_ns/bats_xyz
@@ -509,9 +516,7 @@ teardown() { #{{{
   assert_line -e "^ERROR: Unknown option '--bogus'$"
 } #}}}
 
-@test "git wt remove (extra arguments are rejected)" { #{{{
-  run -1 git wt remove bats_xyz -d
-  assert_line -e "^ERROR: Too many arguments: unexpected '-d'$"
+@test "git wt remove (extra positional args rejected)" { #{{{
   run -1 git wt remove bats_xyz extra
   assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
 } #}}}
@@ -564,6 +569,16 @@ teardown() { #{{{
 
   run ! git wt remove bats_dirty
   assert_line -e '^fatal: .* contains modified or untracked files, use --force to delete it$'
+} #}}}
+
+@test "git wt remove (options accepted after positional arg)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt remove bats_xyz -d
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
+  assert_line -e "^SUCCESS: Branch '.*' deleted$"
 } #}}}
 
 @test "git wt remove -f bats_dirty (dirty worktree, with force)" { #{{{
@@ -677,6 +692,7 @@ teardown() { #{{{
 
 @test "git wt remove bats_ns/bats_xyz (slash branch)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  rm -rf "$(pwd -P)+bats_ns+bats_xyz"
   run git branch -D bats_ns/bats_xyz
   run git wt add bats_ns/bats_xyz
 
@@ -689,6 +705,7 @@ teardown() { #{{{
 
 @test "git wt remove -d bats_ns/bats_xyz (slash branch + delete-branch)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  rm -rf "$(pwd -P)+bats_ns+bats_xyz"
   run git branch -D bats_ns/bats_xyz
   run git wt add bats_ns/bats_xyz
 
@@ -743,6 +760,7 @@ teardown() { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
   run git worktree remove --force "$(pwd -P)+bats_ns+bats_xyz"
+  rm -rf "$(pwd -P)+bats_ns+bats_xyz"
   run git branch -D bats_ns/bats_xyz
   run git wt add bats_ns/bats_xyz
 

@@ -13,6 +13,7 @@ if [ -t 1 ] && [[ -z "${NO_COLOR:-}" ]]; then
   MAGENTA=$(tput setaf 5)
   CYAN=$(tput setaf 6)
   BOLD=$(tput bold)
+  ITALIC=$(tput sitm)
   RESET=$(tput sgr0)
 else
   RED=
@@ -20,6 +21,7 @@ else
   MAGENTA=
   CYAN=
   BOLD=
+  ITALIC=$(tput sitm)
   RESET=
 fi #}}}
 
@@ -565,8 +567,8 @@ usage() { #{{{
     cat <<EOF
 ${CYAN}
 Usage: wt [options] <command> [<worktree>]
-       wt [options] add [--cd] <worktree> [<base>]
-       wt [options] remove [-f|--force] [-d|--delete-branch] <worktree>
+       wt [options] add <worktree> [<base>] [--cd]
+       wt [options] remove <worktree> [-f|--force] [-d|--delete-branch]
        wt cd [<worktree>]
 
     Options:
@@ -575,8 +577,10 @@ Usage: wt [options] <command> [<worktree>]
 
     Commands:
         a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
+                          ${ITALIC}NOTE: 'add' option (--cd) may appear before or after <worktree> [<base>]${CYAN}
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
-        r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
+        r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
+                          ${ITALIC}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${CYAN}
         p | pr | prune  ) prune worktrees
         c | cd          ) cd into worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector)
         s | st | status ) show git status across all worktrees
@@ -590,8 +594,8 @@ EOF
 ${CYAN}
 Usage: git-wt [options] <command> [<worktree>]
        git wt [options] <command> [<worktree>]
-       git wt [options] add [--cd] <worktree> [<base>]
-       git wt [options] remove [-f|--force] [-d|--delete-branch] <worktree>
+       git wt [options] add <worktree> [<base>] [--cd]
+       git wt [options] remove <worktree> [-f|--force] [-d|--delete-branch]
        cd "\$(git wt cd <worktree>)"              # cd to a worktree (wrap in a shell function for convenience)
 
     Options:
@@ -600,8 +604,10 @@ Usage: git-wt [options] <command> [<worktree>]
 
     Commands:
         a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
+                          ${ITALIC}NOTE: 'add' option (--cd) may appear before or after <worktree> [<base>]${CYAN}
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
-        r | rm | remove ) [-f|--force] [-d|--delete-branch] remove a worktree (-f removes dirty worktree; branch is never force-deleted)
+        r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
+                          ${ITALIC}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${CYAN}
         p | pr | prune  ) prune worktrees
         c | cd          ) print path to worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector) (use: cd "\$(git wt cd [<worktree>])")
         s | st | status ) show git status across all worktrees
@@ -634,6 +640,10 @@ process_arguments() { #{{{
         while [[ "$#" -ge 1 ]]; do
           case "${1}" in
             --cd) cd_after=true ;;
+            -*)
+              error "Unknown option '${1}'"
+              exit 1
+              ;;
             *) add_args+=("${1}") ;;
           esac
           shift
@@ -659,22 +669,23 @@ process_arguments() { #{{{
       r | rm | remove) #{{{
         shift
         local force="" delete_branch=""
-        while [[ "${1:-}" == -* ]]; do
+        local -a rm_args=()
+        while [[ "$#" -ge 1 ]]; do
           case "${1}" in
             -f | --force) force=true ;;
             -d | --delete-branch) delete_branch=true ;;
-            *)
+            -*)
               error "Unknown option '${1}'"
               exit 1
               ;;
+            *) rm_args+=("${1}") ;;
           esac
           shift
         done
-        if [[ "$#" -ge 1 ]]; then
-          local wt_name="${1}"
-          shift
-          if [[ "$#" -ge 1 ]]; then
-            error "Too many arguments: unexpected '${1}'"
+        if [[ "${#rm_args[@]}" -ge 1 ]]; then
+          local wt_name="${rm_args[0]}"
+          if [[ "${#rm_args[@]}" -gt 1 ]]; then
+            error "Too many arguments: unexpected '${rm_args[1]}'"
             exit 1
           fi
           local fzf_bin=''
