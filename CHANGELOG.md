@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.24.2 (2026-03-15)
+
+### Bug Fixes
+- Accept '--' in add/remove and validate branch names [`7bac395`](https://github.com/tomhoover/git-wt/commit/7bac3958cc73de9dd7fb4898e61dd81789e3c872)
+
+### Documentation
+- Clarify usage and command options [`6f90dae`](https://github.com/tomhoover/git-wt/commit/6f90dae0653f21df780670a71c53f579aad8d2b2)
 ## v0.24.1 (2026-03-15)
 
 ### Bug Fixes
