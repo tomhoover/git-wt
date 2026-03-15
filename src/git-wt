@@ -509,6 +509,12 @@ add_worktree() { #{{{
     error "Please provide a branch name, not a commit reference"
     exit 1
   fi
+  local check_out
+  if ! check_out=$(git check-ref-format --branch "${branch}" 2>&1); then
+    [[ -n "${check_out}" ]] && echo "${check_out}" >&2
+    error "Invalid branch name '${branch}'"
+    exit 1
+  fi
   local target_root="${REPO_ROOT}"
   if [[ -n "${base}" ]]; then
     local base_wt_path
@@ -640,6 +646,12 @@ process_arguments() { #{{{
         while [[ "$#" -ge 1 ]]; do
           case "${1}" in
             --cd) cd_after=true ;;
+            --debug) set -x ;;
+            --)
+              shift
+              add_args+=("$@")
+              break
+              ;;
             -*)
               error "Unknown option '${1}'"
               exit 1
@@ -674,6 +686,12 @@ process_arguments() { #{{{
           case "${1}" in
             -f | --force) force=true ;;
             -d | --delete-branch) delete_branch=true ;;
+            --debug) set -x ;;
+            --)
+              shift
+              rm_args+=("$@")
+              break
+              ;;
             -*)
               error "Unknown option '${1}'"
               exit 1
@@ -704,7 +722,7 @@ process_arguments() { #{{{
           success "Worktree '${wt_branch:-${wt_name}}' removed successfully"
           if [[ -n "${delete_branch}" ]]; then
             if [[ -n "${wt_branch}" ]]; then
-              git branch -d "${wt_branch}"
+              git branch -d -- "${wt_branch}"
               success "Branch '${wt_branch}' deleted"
             else
               warn "Cannot delete branch: worktree was in detached HEAD state"

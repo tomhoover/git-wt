@@ -182,6 +182,26 @@ teardown() { #{{{
   assert_line -e '^ERROR: Worktree .* already exists$'
 } #}}}
 
+@test "git wt add --debug bats_xyz (debug after subcommand)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+
+  run -0 git wt add --debug bats_xyz
+  assert_output -p "+ add_worktree bats_xyz"
+
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
+@test "git wt add -- -bats_dash (branch name starting with dash is invalid)" { #{{{
+  run git worktree remove --force "$(pwd -P)+-bats_dash"
+  run git branch -D -- -bats_dash
+
+  run -1 git wt add -- -bats_dash
+  assert_output -p "not a valid branch name"
+  assert_output -p "ERROR: Invalid branch name '-bats_dash'"
+} #}}}
+
 @test "git wt add bats_xyz (create, then duplicate)" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
@@ -579,6 +599,15 @@ teardown() { #{{{
   run -0 git wt remove bats_xyz -d
   assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
   assert_line -e "^SUCCESS: Branch '.*' deleted$"
+} #}}}
+
+@test "git wt remove -- bats_xyz (double-dash end of options)" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  run git wt add bats_xyz
+
+  run -0 git wt remove -- bats_xyz
+  assert_line -e "^SUCCESS: Worktree '.*' removed successfully$"
 } #}}}
 
 @test "git wt remove -f bats_dirty (dirty worktree, with force)" { #{{{
