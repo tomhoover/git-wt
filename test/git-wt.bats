@@ -494,6 +494,21 @@ teardown() { #{{{
   run git branch -D bats_xyz
 } #}}}
 
+@test "git wt add: .git-wt-copy trims tabs and CRLF" { #{{{
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+  echo "test-seed-content" >"$(pwd -P)/.git-wt-copy-seed"
+  printf '\t.git-wt-copy-seed\r\n' >"$(pwd -P)/.git-wt-copy"
+
+  run -0 git wt add bats_xyz
+  assert_output -p "Copied 1 item(s) from .git-wt-copy"
+  [[ -f "$(pwd -P)+bats_xyz/.git-wt-copy-seed" ]]
+
+  rm -f "$(pwd -P)/.git-wt-copy" "$(pwd -P)/.git-wt-copy-seed"
+  run git worktree remove --force "$(pwd -P)+bats_xyz"
+  run git branch -D bats_xyz
+} #}}}
+
 @test "git wt add: .git-wt-copy rejects absolute paths" { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz

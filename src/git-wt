@@ -464,9 +464,10 @@ copy_worktree_files() { #{{{
   local copied=0
 
   while IFS= read -r raw; do
-    # Strip leading/trailing whitespace
-    local entry="${raw#"${raw%%[! ]*}"}"
-    entry="${entry%"${entry##*[! ]}"}"
+    # Strip leading/trailing whitespace (spaces, tabs, CR)
+    local entry="${raw//$'\r'/}"
+    entry="${entry#"${entry%%[!$' \t']*}"}"
+    entry="${entry%"${entry##*[!$' \t']}"}"
     # Skip blank lines and comments
     [[ -z "${entry}" || "${entry}" == \#* ]] && continue
     # Strip trailing slash (directories may include it for clarity)
