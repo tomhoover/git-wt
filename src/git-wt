@@ -471,8 +471,8 @@ copy_worktree_files() { #{{{
     [[ -z "${entry}" || "${entry}" == \#* ]] && continue
     # Strip trailing slash (directories may include it for clarity)
     entry="${entry%/}"
-    # Reject absolute paths or paths with ..
-    if [[ "${entry}" == /* || "${entry}" == *..* ]]; then
+    # Reject absolute paths or path traversal components
+    if [[ "${entry}" == /* || "${entry}" == ".." || "${entry}" == "../"* || "${entry}" == *"/../"* || "${entry}" == */.. ]]; then
       warn ".git-wt-copy: skipping invalid path '${entry}'"
       continue
     fi
