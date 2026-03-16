@@ -506,10 +506,14 @@ teardown() { #{{{
   run git branch -D bats_xyz
 } #}}}
 
-@test "git wt add: .git-wt-copy rejects paths with .." { #{{{
+@test "git wt add: .git-wt-copy rejects traversal paths with .." { #{{{
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
-  echo "../something" >"$(pwd -P)/.git-wt-copy"
+  cat >"$(pwd -P)/.git-wt-copy" <<'EOF'
+../something
+dir/../escape
+dir/subdir/..
+EOF
 
   run -0 git wt add bats_xyz
   assert_output -p "WARNING"
