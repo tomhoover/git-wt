@@ -86,7 +86,7 @@ _git_wt_branches() {
 
 _git_wt_worktrees() {
   git worktree list --porcelain 2>/dev/null \
-    | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}'
+    | awk '/^worktree /{p=$0; sub(/^worktree /,"",p)} /^branch/{if(p~/\+/){sub("refs\/heads\/",""); print $2}}'
 }
 
 _git_wt() {
@@ -139,7 +139,7 @@ completion_zsh() { #{{{
 
 _git_wt_worktree_branches() {
   git worktree list --porcelain 2>/dev/null \
-    | awk '/^worktree/{p=$2} /^branch/{if(p~/\+/){sub("refs/heads/",""); print $2}}'
+    | awk '/^worktree /{p=$0; sub(/^worktree /,"",p)} /^branch/{if(p~/\+/){sub("refs\/heads\/",""); print $2}}'
 }
 
 _git-wt() {
@@ -266,7 +266,7 @@ _list_worktrees_raw() { #{{{
   # branch is empty string for detached HEAD, "(bare)" for bare repos.
   git worktree list --porcelain \
     | awk '
-        /^worktree/ { path = $2; head = ""; br = "" }
+        /^worktree / { path = $0; sub(/^worktree /, "", path); head = ""; br = "" }
         /^HEAD/     { head = substr($2, 1, 7) }
         /^branch/   { br = $2; sub("refs/heads/", "", br) }
         /^detached/ { br = "" }
@@ -522,7 +522,7 @@ add_worktree() { #{{{
     local base_wt_path
     base_wt_path=$(git worktree list --porcelain \
       | awk -v b="${base}" '
-          /^worktree/ { path = $2 }
+          /^worktree / { path = $0; sub(/^worktree /, "", path) }
           /^branch/ {
             br = $2; sub("refs/heads/", "", br)
             if (br == b) { print path; exit }
@@ -685,6 +685,11 @@ process_arguments() { #{{{
         ;;
       # }}}
       l | ls | list) #{{{
+        shift
+        if [[ "$#" -gt 0 ]]; then
+          error "Too many arguments: unexpected '${1}'"
+          exit 1
+        fi
         list_worktrees
         break
         ;;
@@ -756,11 +761,21 @@ process_arguments() { #{{{
         ;;
       # }}}
       s | st | status) #{{{
+        shift
+        if [[ "$#" -gt 0 ]]; then
+          error "Too many arguments: unexpected '${1}'"
+          exit 1
+        fi
         status_worktrees
         break
         ;;
       # }}}
       p | pr | prune) #{{{
+        shift
+        if [[ "$#" -gt 0 ]]; then
+          error "Too many arguments: unexpected '${1}'"
+          exit 1
+        fi
         git worktree prune -v
         success "Prune complete"
         break
@@ -768,6 +783,10 @@ process_arguments() { #{{{
       # }}}
       completion) #{{{
         shift
+        if [[ "$#" -gt 1 ]]; then
+          error "Too many arguments: unexpected '${2}'"
+          exit 1
+        fi
         case "${1:-}" in
           bash) completion_bash ;;
           zsh) completion_zsh ;;
@@ -781,6 +800,10 @@ process_arguments() { #{{{
       # }}}
       init) #{{{
         shift
+        if [[ "$#" -gt 1 ]]; then
+          error "Too many arguments: unexpected '${2}'"
+          exit 1
+        fi
         # init_shell emits a shell-agnostic snippet; bash and zsh both use the same output
         case "${1:-}" in
           bash | zsh) init_shell ;;
@@ -793,6 +816,11 @@ process_arguments() { #{{{
         ;;
       # }}}
       v | version) #{{{
+        shift
+        if [[ "$#" -gt 0 ]]; then
+          error "Too many arguments: unexpected '${1}'"
+          exit 1
+        fi
         echo "git-wt version ${VERSION}"
         break
         ;;

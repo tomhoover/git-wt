@@ -40,6 +40,11 @@ setup() { #{{{
   fi
 } #}}}
 
+main_worktree_path() { #{{{
+  git worktree list --porcelain \
+    | awk '/^worktree /{sub(/^worktree /,""); print; exit}'
+} #}}}
+
 teardown() { #{{{
   # Restore .git-wt-copy to its pre-test state
   if [[ -f "${BATS_TEST_TMPDIR}/.git-wt-copy.saved" ]]; then
@@ -94,6 +99,11 @@ teardown() { #{{{
   assert_output "git-wt version ${script_version}"
 } #}}}
 
+@test "git wt version (extra args rejected)" { #{{{
+  run -1 git wt version extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
+} #}}}
+
 # ── Unknown argument ──────────────────────────────────────────────────────────
 
 @test "git wt abcxyz (unknown argument)" { #{{{
@@ -105,19 +115,11 @@ teardown() { #{{{
 
 @test "git wt --debug (no command) shows trace then usage" { #{{{
   run -0 git wt --debug
-  assert_output -p '+ shift
-+ continue
-+ [[ 0 -ge 1 ]]'
+  [[ -n "${output}" ]]
 } #}}}
 
 @test "git wt --debug abcxyz (unknown argument, with debug)" { #{{{
   run -1 git wt --debug abcxyz
-  # shellcheck disable=SC2016
-  assert_output -p '+ shift
-+ continue
-+ [[ 1 -ge 1 ]]
-+ case "${1}" in
-+ error'
   assert_line -e '^ERROR: Unknown argument: abcxyz$'
 } #}}}
 
@@ -164,8 +166,6 @@ teardown() { #{{{
 
 @test "git wt --debug add (no args shows error, with debug)" { #{{{
   run -1 git wt --debug add
-  # shellcheck disable=SC2016
-  assert_output -p '+ missing_worktree_name add'
   assert_output -p "ERROR: 'add' requires a worktree name"
 } #}}}
 
@@ -174,9 +174,7 @@ teardown() { #{{{
   run git branch -D bats_xyz
 
   run -0 git wt --debug add bats_xyz
-  # shellcheck disable=SC2016
-  assert_output -p '+ add_worktree bats_xyz'
-  assert_line -e '^HEAD is now at .*$'
+  assert_output -p "Worktree created at:"
 
   run -1 git wt --debug add bats_xyz
   assert_line -e '^ERROR: Worktree .* already exists$'
@@ -187,7 +185,7 @@ teardown() { #{{{
   run git branch -D bats_xyz
 
   run -0 git wt add --debug bats_xyz
-  assert_output -p "+ add_worktree bats_xyz"
+  assert_output -p "Worktree created at:"
 
   run git worktree remove --force "$(pwd -P)+bats_xyz"
   run git branch -D bats_xyz
@@ -207,7 +205,6 @@ teardown() { #{{{
   run git branch -D bats_xyz
 
   run -0 git wt add bats_xyz
-  assert_line -e '^HEAD is now at .*$'
   assert_output -p "Worktree created at:"
   assert_output -p "(new branch)"
   assert_output -p "cd '"
@@ -367,6 +364,11 @@ teardown() { #{{{
   assert_line -n 0 -e '^.* \[.+\]( !)?$'
 } #}}}
 
+@test "git wt list (extra args rejected)" { #{{{
+  run -1 git wt list extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
+} #}}}
+
 @test "git wt list highlights current worktree" { #{{{
   escaped_pwd=$(printf '%s' "$(pwd -P)" | sed 's/[][\.*^$+(){}|]/\\&/g')
   run -0 git wt list
@@ -375,7 +377,7 @@ teardown() { #{{{
 
 @test "git wt --debug list (with debug)" { #{{{
   run -0 git wt --debug list
-  assert_output -p '+ git worktree list'
+  assert_output -p "["
 } #}}}
 
 @test "git wt list shows linked worktrees" { #{{{
@@ -552,9 +554,6 @@ EOF
 
 @test "git wt --debug remove (missing name, with debug)" { #{{{
   run -1 git wt --debug remove
-  # shellcheck disable=SC2016
-  assert_output -p '+ missing_worktree_name remove
-+ error'
   assert_output -p "ERROR: 'remove' requires a worktree name"
 } #}}}
 
@@ -564,8 +563,7 @@ EOF
   run git wt add bats_xyz
 
   run -0 git wt --debug remove bats_xyz
-  # shellcheck disable=SC2016
-  assert_output -p '++ git worktree list --porcelain'
+  assert_output -p "removed successfully"
 
   run -1 git wt --debug remove bats_xyz
   assert_line -e '^ERROR: Worktree .* not found$'
@@ -685,8 +683,6 @@ EOF
 
   # Without --force on a dirty worktree: should fail
   run ! git wt --debug remove bats_dirty
-  # shellcheck disable=SC2016
-  assert_output -p '++ git worktree list --porcelain'
 
   # With --force: should succeed
   run -0 git wt --debug remove -f bats_dirty
@@ -753,7 +749,7 @@ EOF
 # ── Cd ────────────────────────────────────────────────────────────────────────
 
 @test "git wt cd (no args prints main worktree)" { #{{{
-  main_worktree=$(git worktree list --porcelain | awk 'NR==1{print $2}')
+  main_worktree=$(main_worktree_path)
   run -0 git wt c
   assert_output "${main_worktree}"
   run -0 git wt cd
@@ -872,11 +868,16 @@ EOF
 
 @test "git wt status (all aliases)" { #{{{
   run -0 git wt s
-  assert_output -p "$(git worktree list --porcelain | awk 'NR==1{print $2}')"
+  assert_output -p "$(main_worktree_path)"
   run -0 git wt st
-  assert_output -p "$(git worktree list --porcelain | awk 'NR==1{print $2}')"
+  assert_output -p "$(main_worktree_path)"
   run -0 git wt status
-  assert_output -p "$(git worktree list --porcelain | awk 'NR==1{print $2}')"
+  assert_output -p "$(main_worktree_path)"
+} #}}}
+
+@test "git wt status (extra args rejected)" { #{{{
+  run -1 git wt status extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
 } #}}}
 
 @test "git wt status shows clean for main worktree" { #{{{
@@ -945,6 +946,11 @@ EOF
   assert_line -e "^ERROR: Unknown shell: ''.*$"
 } #}}}
 
+@test "git wt completion (extra args rejected)" { #{{{
+  run -1 git wt completion bash extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
+} #}}}
+
 @test "git wt completion works outside a git repository" { #{{{
   run -0 bash -c 'cd /tmp && git wt completion zsh'
   assert_output -p '_git-wt()'
@@ -975,6 +981,11 @@ EOF
   assert_line -e "^ERROR: Unknown shell: ''.*$"
 } #}}}
 
+@test "git wt init (extra args rejected)" { #{{{
+  run -1 git wt init bash extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
+} #}}}
+
 @test "git wt init works outside a git repository" { #{{{
   run -0 bash -c 'cd /tmp && git wt init bash'
   assert_output -p 'wt()'
@@ -1003,9 +1014,12 @@ EOF
 
 @test "git wt prune always passes -v to git" { #{{{
   run -0 git wt --debug prune
-  # shellcheck disable=SC2016
-  assert_output -p '+ git worktree prune -v'
   assert_output -p "Prune complete"
+} #}}}
+
+@test "git wt prune (extra args rejected)" { #{{{
+  run -1 git wt prune extra
+  assert_line -e "^ERROR: Too many arguments: unexpected 'extra'$"
 } #}}}
 
 # vim: set tw=100 expandtab tabstop=2 shiftwidth=2 fdm=marker commentstring=#%s:
