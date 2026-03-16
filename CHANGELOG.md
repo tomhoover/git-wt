@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 
+## v0.24.3 (2026-03-16)
+
+### Bug Fixes
+- Allow .git-wt-copy entries with double dots [`3676de6`](https://github.com/tomhoover/git-wt/commit/3676de61256dd0491f61785c3c1e33fda5977aa4)
+
+### Chore
+- Pin bats deps and tighten test preflight [`decdd83`](https://github.com/tomhoover/git-wt/commit/decdd83e7d170dab7f1973ec181afcc9aa934a33)
+
+### Documentation
+- Clarify shell function requirement for '--cd' [`b8227a8`](https://github.com/tomhoover/git-wt/commit/b8227a8bb9630bcbe9933e1774f15e789a03f296)
+- Add AGENTS contributor guide [`c1aa959`](https://github.com/tomhoover/git-wt/commit/c1aa9595f6632ddbf4d50c86ff6251ad17ba27da)
 ## v0.24.2 (2026-03-15)
 
 ### Bug Fixes
