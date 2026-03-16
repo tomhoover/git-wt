@@ -56,7 +56,7 @@ _Command options apply only to the selected command._
 
 | Command | Option | Description |
 |--------|----------------|-------------|
-| `add` | `--cd` | changes into the new worktree immediately |
+| `add` | `--cd` | changes into the new worktree immediately (requires the `wt` shell function) |
 | `remove` | `-f` \| `--force` | removes a dirty worktree |
 | `remove` | `-d` \| `--delete-branch` | also deletes the branch using `git branch -d` |
 
