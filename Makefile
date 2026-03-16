@@ -50,7 +50,8 @@ fmt: ## Auto-format src and test files with shfmt (in place)
 # ── Testing ───────────────────────────────────────────────────────────────────
 
 test: ## Run all bats tests
-	@[[ -d "$(TEST_DIR)/libs/bats-assert" ]] || { echo "ERROR: run 'make deps' first"; exit 1; }
+	@[[ -d "$(TEST_DIR)/libs/bats-assert" ]] || { echo "ERROR: run 'make deps' first (missing bats-assert)"; exit 1; }
+	@[[ -d "$(TEST_DIR)/libs/bats-support" ]] || { echo "ERROR: run 'make deps' first (missing bats-support)"; exit 1; }
 	$(BATS) $(TEST_FILE)
 
 test-tap: ## Run bats tests with TAP output (useful for CI)
@@ -65,11 +66,11 @@ deps: ## Install bats-assert, bats-support into test/libs
 	@command -v $(BATS) &>/dev/null || { echo "ERROR: $(BATS) is not installed"; exit 1; }
 	@mkdir -p $(TEST_DIR)/libs
 	@if [[ ! -d "$(TEST_DIR)/libs/bats-assert" ]]; then \
-		git clone --depth 1 https://github.com/bats-core/bats-assert \
+		git clone --depth 1 --branch v2.1.0 https://github.com/bats-core/bats-assert \
 			$(TEST_DIR)/libs/bats-assert; \
 	fi
 	@if [[ ! -d "$(TEST_DIR)/libs/bats-support" ]]; then \
-		git clone --depth 1 https://github.com/bats-core/bats-support \
+		git clone --depth 1 --branch v0.3.0 https://github.com/bats-core/bats-support \
 			$(TEST_DIR)/libs/bats-support; \
 	fi
 
