@@ -184,6 +184,7 @@ tmp/cache/
 |----------|---------|
 | `NO_COLOR` | Set to any non-empty value to disable all color output (see [no-color.org](https://no-color.org/)). |
 | `GIT_WT_ADD_CD` | Set to any non-empty value to make `wt add` always cd into the new worktree (equivalent to always passing `--cd`). Requires the `wt` shell function. |
+| `GIT_WT_DEBUG` | Set to any non-empty value to enable bash trace (`set -x`) for debugging. |
 | `GIT_WT_FZF` | Override the `fzf` binary path used for interactive selection. |
 | `GIT_WT_MISE` | Override the `mise` binary path used for `mise trust` after `add`. |
 

@@ -638,6 +638,10 @@ EOF
 } #}}}
 
 process_arguments() { #{{{
+  if [[ -n "${GIT_WT_DEBUG:-}" ]]; then
+    set -x
+  fi
+
   while [[ "$#" -ge 1 ]]; do
     case "${1}" in
       # options #{{{
