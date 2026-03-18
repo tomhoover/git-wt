@@ -429,6 +429,12 @@ list_worktrees() { #{{{
   done < <(_list_worktrees_raw)
 } #}}}
 
+list_worktrees_short() { #{{{
+  while IFS=$'\t' read -r wt_path wt_head wt_branch; do
+    printf '%s\n' "${wt_path}"
+  done < <(_list_worktrees_raw)
+} #}}}
+
 missing_worktree_name() { #{{{
   error "'${1}' requires a worktree name"
   usage
@@ -602,7 +608,7 @@ Usage: wt [options] <command> [--] <positional-args>
     Commands:
         a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
                           ${ITALICS_ON}NOTE: 'add' option (--cd) may appear before or after '<worktree> [<base>]'${ITALICS_OFF}${CYAN}
-        l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
+        l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)${ITALICS_ON}; -s | --short for script-friendly output${ITALICS_OFF}${CYAN}
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
                           ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
@@ -633,7 +639,7 @@ Usage: git-wt [options] <command> [--] <positional-args>
     Commands:
         a | add         ) add a worktree; optional [<base>] creates new branch from base instead of HEAD; --cd changes into new worktree after creation (default: set GIT_WT_ADD_CD=1)
                           ${ITALICS_ON}NOTE: 'add' option (--cd) may appear before or after '<worktree> [<base>]'${ITALICS_OFF}${CYAN}
-        l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)
+        l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)${ITALICS_ON}; -s | --short for script-friendly output${ITALICS_OFF}${CYAN}
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
                           ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
@@ -701,11 +707,26 @@ process_arguments() { #{{{
       # }}}
       l | ls | list) #{{{
         shift
-        if [[ "$#" -gt 0 ]]; then
-          error "Too many arguments: unexpected '${1}'"
-          exit 1
+        local short=""
+        while [[ "$#" -gt 0 ]]; do
+          case "${1}" in
+            -s | --short) short=true ;;
+            -*)
+              error "Unknown option '${1}'"
+              exit 1
+              ;;
+            *)
+              error "Too many arguments: unexpected '${1}'"
+              exit 1
+              ;;
+          esac
+          shift
+        done
+        if [[ -n "${short}" ]]; then
+          list_worktrees_short
+        else
+          list_worktrees
         fi
-        list_worktrees
         break
         ;;
       # }}}

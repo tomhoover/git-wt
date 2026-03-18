@@ -65,7 +65,7 @@ _Command options apply only to the selected command._
 | Command | Aliases | Description |
 |---------|---------|-------------|
 | `add <branch> [<base>] [--cd]` | `a` | <ul><li>Create a worktree for `<branch>` (checks out existing or creates new branch from `HEAD`)</li><li>if `<base>` is given, always creates a new branch from that base</li><li>`--cd` changes into the new worktree immediately (requires the `wt` shell function)</li><li>copies files listed in `.git-wt-copy`</li></ul> |
-| `list` | `l`, `ls` | <ul><li>List all worktrees</li><li>highlights the current one</li><li>appends a '!' to indicate a dirty worktree)</li></ul> |
+| `list [-s]` | `l`, `ls` | <ul><li>List all worktrees</li><li>highlights the current one</li><li>appends a '!' to indicate a dirty worktree</li><li>`-s | --short` outputs only paths (script-friendly)</li></ul> |
 | `remove <branch> [-f\|--force] [-d\|--delete-branch]` | `r`, `rm` | <ul><li>Remove the worktree for `<branch>`</li><li>`-f` removes a dirty worktree</li><li>`-d` also deletes the branch using `git branch -d` (refuses if unmerged — `-f` does **not** force branch deletion)</li></ul> |
 | `prune` | `p`, `pr` | Prune stale worktree references |
 | `cd [<branch>]` | `c` | <ul><li>Print path to worktree</li><li>accepts exact, prefix, or segment match</li><li>no arg = main worktree, or launches `fzf` selector when multiple worktrees exist</li><li>if multiple worktrees exist and `fzf` is not available, lists all worktrees and exits with an error</li></ul> |
@@ -84,6 +84,7 @@ wt add feature-x main --cd     # create from base and cd in
                                # note: --cd requires the wt shell function;
                                #   'git wt add --cd' without it shows a cd hint instead
 git wt ls                      # list all worktrees
+git wt ls -s                   # list only paths (script-friendly)
 git wt remove feature-x        # remove the worktree
 git wt remove -f feature-x     # force-remove a dirty worktree (branch untouched)
 git wt remove -d feature-x     # remove worktree and delete branch (refuses if unmerged)

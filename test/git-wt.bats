@@ -424,6 +424,25 @@ teardown() { #{{{
   refute_output -p "[detached]"
 } #}}}
 
+@test "git wt list --short (all aliases)" { #{{{
+  run -0 git wt list -s
+  assert_output -p "$(pwd -P)"
+  run -0 git wt l --short
+  assert_output -p "$(pwd -P)"
+  run -0 git wt ls --short
+  assert_output -p "$(pwd -P)"
+} #}}}
+
+@test "git wt list --short (extra args rejected)" { #{{{
+  run -1 git wt list --short extra
+  assert_line -e "^ERROR: Too many arguments:.*$"
+} #}}}
+
+@test "git wt list --short (unknown option)" { #{{{
+  run -1 git wt list --unknown
+  assert_line -e "^ERROR: Unknown option.*$"
+} #}}}
+
 # ── Add: .git-wt-copy ─────────────────────────────────────────────────────────
 
 @test "git wt add: no .git-wt-copy — silent success" { #{{{
