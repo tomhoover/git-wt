@@ -54,7 +54,7 @@ wt() {
       for _arg in "$@"; do [[ "${_arg}" == "--cd" ]] && _do_cd=1; done
       if (( _do_cd )); then
         local _cd_file _wt_path _rc
-        _cd_file=$(mktemp)
+        _cd_file=$(mktemp -t git-wt-cd.XXXXXX)
         GIT_WT_CALLER=wt GIT_WT_CD_FILE="${_cd_file}" git wt "$@"; _rc=$?
         if [[ $_rc -eq 0 ]]; then
           _wt_path=$(cat "${_cd_file}" 2>/dev/null)
