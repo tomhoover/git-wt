@@ -383,10 +383,20 @@ cd_worktree() { #{{{
       all_paths+=("${_p}")
     done < <(_list_worktrees_raw)
     local main_root="${all_paths[0]}"
-    if [[ "${#all_paths[@]}" -le 1 ]] || [[ -z "${fzf_bin}" ]]; then
+    if [[ "${#all_paths[@]}" -le 1 ]]; then
       echo "${main_root}"
-    else
+    elif [[ -n "${fzf_bin}" ]]; then
       _fzf_select_worktree "${fzf_bin}" "${all_paths[@]}" || exit 1
+    else
+      error "Ambiguous worktree — matches:"
+      for _p in "${all_paths[@]}"; do
+        if [[ "${_p}" == "${main_root}" ]]; then
+          echo "  (main)" >&2
+        else
+          echo "  ${_p#"${main_root}+"}" >&2
+        fi
+      done
+      exit 1
     fi
     return
   fi
@@ -596,7 +606,7 @@ Usage: wt [options] <command> [--] <positional-args>
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
                           ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
-        c | cd          ) cd into worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector)
+        c | cd          ) cd into worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector if multiple)
         s | st | status ) show git status across all worktrees
         completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
         init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")
@@ -627,7 +637,7 @@ Usage: git-wt [options] <command> [--] <positional-args>
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
                           ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
-        c | cd          ) print path to worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector) (use: cd "\$(git wt cd [<worktree>])")
+        c | cd          ) print path to worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector if multiple)
         s | st | status ) show git status across all worktrees
         completion      ) output shell completion script (use: eval "\$(git wt completion bash|zsh)")
         init            ) output shell integration function (use: eval "\$(git wt init bash|zsh)")

@@ -68,7 +68,7 @@ _Command options apply only to the selected command._
 | `list` | `l`, `ls` | <ul><li>List all worktrees</li><li>highlights the current one</li><li>appends a '!' to indicate a dirty worktree)</li></ul> |
 | `remove <branch> [-f\|--force] [-d\|--delete-branch]` | `r`, `rm` | <ul><li>Remove the worktree for `<branch>`</li><li>`-f` removes a dirty worktree</li><li>`-d` also deletes the branch using `git branch -d` (refuses if unmerged — `-f` does **not** force branch deletion)</li></ul> |
 | `prune` | `p`, `pr` | Prune stale worktree references |
-| `cd [<branch>]` | `c` | <ul><li>Print path to worktree</li><li>accepts exact, prefix, or segment match</li><li>no arg = switch to main worktree, or launches `fzf` selector when multiple worktrees exist (use with `cd` — see below)</li></ul> |
+| `cd [<branch>]` | `c` | <ul><li>Print path to worktree</li><li>accepts exact, prefix, or segment match</li><li>no arg = main worktree, or launches `fzf` selector when multiple worktrees exist</li><li>if multiple worktrees exist and `fzf` is not available, lists all worktrees and exits with an error</li></ul> |
 | `status` | `s`, `st` | Show git status across all worktrees |
 | `completion <shell>` | | Output shell completion script (`bash` or `zsh`) |
 | `init <shell>` | | Output shell integration `wt` function (`bash` or `zsh`) |
