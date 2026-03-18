@@ -611,6 +611,7 @@ Usage: wt [options] <command> [--] <positional-args>
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)${ITALICS_ON}; -s | --short for script-friendly output${ITALICS_OFF}${CYAN}
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
                           ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
+                          ${ITALICS_ON}NOTE: partial matches require confirmation unless -f is used${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
         c | cd          ) cd into worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector if multiple)
         s | st | status ) show git status across all worktrees
@@ -642,6 +643,7 @@ Usage: git-wt [options] <command> [--] <positional-args>
         l | ls | list   ) list worktrees ('${RED}!${CYAN}' = dirty, '${RED}!! (directory missing)${CYAN}' / '${RED}!! (inaccessible)${CYAN}' = broken)${ITALICS_ON}; -s | --short for script-friendly output${ITALICS_OFF}${CYAN}
         r | rm | remove ) remove a worktree; -f removes dirty worktree; -d also deletes branch (never force)
                           ${ITALICS_ON}NOTE: 'remove' options (-f|--force|-d|--delete-branch) may appear before or after <worktree>${ITALICS_OFF}${CYAN}
+                          ${ITALICS_ON}NOTE: partial matches require confirmation unless -f is used${ITALICS_OFF}${CYAN}
         p | pr | prune  ) prune worktrees
         c | cd          ) print path to worktree; exact, prefix, or segment match; no arg = main worktree (or fzf selector if multiple)
         s | st | status ) show git status across all worktrees
@@ -768,6 +770,13 @@ process_arguments() { #{{{
           match=$(_match_worktree "${wt_name}" "${fzf_bin}") || exit 1
           IFS=$'\t' read -r wt_path wt_branch <<<"${match}"
           [[ "${wt_branch}" == "(bare)" ]] && wt_branch=''
+          local expected_path="${REPO_ROOT}+${wt_name//\//+}"
+          if [[ "${wt_path}" != "${expected_path}" ]] && [[ -z "${force}" ]]; then
+            local confirm
+            printf '%s' "${MAGENTA}WARNING: '${wt_name}' matched '${wt_path#"${REPO_ROOT}+"}'. Remove this worktree? [y/N] ${RESET}" >&2
+            read -r confirm >&2
+            [[ "${confirm}" != "y" && "${confirm}" != "Y" ]] && exit 1
+          fi
           # ${force:+-f} intentionally unquoted — empty expansion must pass no argument
           # shellcheck disable=SC2086 # intentionally unquoted for optional flag expansion
           git worktree remove ${force:+-f} "${wt_path}"

@@ -737,7 +737,7 @@ EOF
   run git branch -D bats_xyz
   run git wt add bats_xyz
 
-  run -0 git wt remove bats_x
+  run -0 git wt remove -f bats_x
   assert_line -e "^SUCCESS: Worktree 'bats_xyz' removed successfully$"
 
   run -1 git wt remove bats_x
