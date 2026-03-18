@@ -123,6 +123,11 @@ teardown() { #{{{
   assert_line -e '^ERROR: Unknown argument: abcxyz$'
 } #}}}
 
+@test "GIT_WT_DEBUG=1 enables trace for add command" { #{{{
+  run -1 env GIT_WT_DEBUG=1 git wt add 2>&1
+  assert_output --partial "+ [["
+} #}}}
+
 # ── Outside git repository ────────────────────────────────────────────────────
 
 @test "git wt (add/list/remove/status/cd) fail outside a git repo" { #{{{
@@ -767,6 +772,16 @@ EOF
   main_worktree=$(main_worktree_path)
   run -0 git wt c
   assert_output "${main_worktree}"
+  run -0 git wt cd
+  assert_output "${main_worktree}"
+} #}}}
+
+@test "git wt cd (no args returns main when no linked worktrees)" { #{{{
+  # Ensure no extra worktrees exist
+  run git worktree remove --force "$(pwd -P)+bats_xyz" 2>/dev/null || true
+  run git branch -D bats_xyz 2>/dev/null || true
+
+  main_worktree=$(main_worktree_path)
   run -0 git wt cd
   assert_output "${main_worktree}"
 } #}}}
