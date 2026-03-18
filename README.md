@@ -189,6 +189,32 @@ tmp/cache/
 | `GIT_WT_FZF` | Override the `fzf` binary path used for interactive selection. |
 | `GIT_WT_MISE` | Override the `mise` binary path used for `mise trust` after `add`. |
 
+## Prerequisites
+
+- **Git** 2.7+ (for worktree support)
+- **Bash** 4.0+ (or Zsh)
+- **Unix-like OS** (Linux, macOS, or Windows with WSL)
+
+## Contributing
+
+Contributions are welcome! To set up a development environment:
+
+```bash
+# Install test dependencies
+make deps
+
+# Run tests
+make test
+
+# Run linting
+make lint
+
+# Auto-format code
+make fmt
+```
+
+See [AGENTS.md](AGENTS.md) for detailed development guidelines.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
