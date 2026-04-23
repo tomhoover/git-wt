@@ -15,7 +15,7 @@ jobs:
       - name: Ensure HEAD is on a named branch
         run: git symbolic-ref HEAD || git checkout -b ci-branch
 
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
 
       - name: Install bats dependencies
         run: make deps
@@ -37,7 +37,7 @@ jobs:
         with:
           fetch-depth: 0   # git-cliff needs full history + all tags
 
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
 
       - name: Generate release notes
         run: git cliff --latest --strip all | tail -n +3 > release-notes.md
