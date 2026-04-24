@@ -1,27 +1,24 @@
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-SHELL        := /usr/bin/env bash
-SRC          := src/git-wt
-TEST_DIR     := test
-TEST_FILE    := $(TEST_DIR)/git-wt.bats
-BATS         := bats
-GIT_CLIFF    := git-cliff
-SHELLCHECK   := shellcheck
-SHFMT        := shfmt
+SHELL		:= /usr/bin/env bash
+SRC			:= src/git-wt
+TEST_DIR	:= test
+TEST_FILE	:= $(TEST_DIR)/git-wt.bats
+BATS		:= bats
+GIT_CLIFF	:= git-cliff
+SHELLCHECK	:= shellcheck
+SHFMT		:= shfmt
+TYPOS		:= typos
 
 # Release configuration — override these when copying to another project
 VERSION_FILE ?= src/git-wt
 VERSION_VAR  ?= VERSION
 
-# SHFMT_OPTS  := -i 4 -ln bash
-# -ln bash: explicit language flag; omitted because shfmt infers bash from the shebang
-#  including it caused errors with bats test files
-
-# shfmt options: indent with 2 spaces, keep consistent with vim modeline
-SHFMT_OPTS  := -i 2 -bn -ci
-
 # shellcheck options: warn on everything, target bash
 SHELLCHECK_OPTS := --shell=bash --severity=warning
+
+# shfmt options: indent with 2 spaces, keep consistent with vim modeline
+SHFMT_OPTS	:= -i 2 -bn -ci
 
 .PHONY: all lint shellcheck shfmt-check fmt test test-tap test-verbose deps clean clean-deps clean-worktrees check-tools release help
 
@@ -95,7 +92,7 @@ clean-worktrees: ## Remove any stray bats test worktrees
 # ── Checks ────────────────────────────────────────────────────────────────────
 
 check-tools: ## Verify required tools are installed
-	@for tool in $(BATS) $(GIT_CLIFF) $(SHELLCHECK) $(SHFMT); do \
+	@for tool in $(BATS) $(GIT_CLIFF) $(SHELLCHECK) $(SHFMT) $(TYPOS); do \
 		if ! command -v $$tool &>/dev/null; then \
 			echo "ERROR: $$tool is not installed or not in PATH"; \
 			exit 1; \
@@ -114,6 +111,8 @@ release: lint test ## Bump version, update CHANGELOG, commit, and tag (then: git
 		|| { echo "ERROR: working tree is dirty — commit or stash first"; exit 1; }
 	@command -v $(GIT_CLIFF) &>/dev/null \
 		|| { echo "ERROR: git-cliff not found — run 'mise install'"; exit 1; }
+	@command -v $(TYPOS) &>/dev/null \
+		|| { echo "ERROR: typos not found — run 'mise install'"; exit 1; }
 	@NEW_VERSION=$$($(GIT_CLIFF) --bumped-version | tr -d 'v'); \
 	echo "Bumping to v$${NEW_VERSION}"; \
 	$(GIT_CLIFF) --bump -o CHANGELOG.md; \
