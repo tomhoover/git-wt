@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [0.25.1](https://github.com/tomhoover/git-wt/compare/v0.25.0..v0.25.1) - 2026-04-24
 
 ### 🎨 Styling
 
-- *(changelog)* Revise cliff.toml - ([3b9ab51](https://github.com/tomhoover/git-wt/commit/3b9ab51363bb593a7db93bfd40afe315d59738a5))
+- *(changelog)* Revise cliff.toml - ([82abb9d](https://github.com/tomhoover/git-wt/commit/82abb9d4f29ab5ce371370eab940f09cb7d575df))
+
+### ⚙️ Miscellaneous Tasks
+
+- Revise release notes to match format of CHANGELOG - ([6ed0c88](https://github.com/tomhoover/git-wt/commit/6ed0c88a981b1415057fe3db5775b8fc121fe124))
 
 ## [0.25.0](https://github.com/tomhoover/git-wt/compare/v0.24.3..v0.25.0) - 2026-04-23
 
