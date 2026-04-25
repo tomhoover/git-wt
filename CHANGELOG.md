@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
+## [0.25.2](https://github.com/tomhoover/git-wt/compare/v0.25.1..v0.25.2) - 2026-04-25
+
+### 🎨 Styling
+
+- *(changelog)* Escape underscores and asterisks in commit messages - ([ce223b2](https://github.com/tomhoover/git-wt/commit/ce223b22ea9d7ccaae3da634d7395eb3a3e8d7cd))
 
 ### ⚙️ Miscellaneous Tasks
 
