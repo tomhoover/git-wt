@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
+### ⚙️ Miscellaneous Tasks
+
+- *(Makefile)* Verify 'typos' is installed - ([3554e6b](https://github.com/tomhoover/git-wt/commit/3554e6bb789655d7534d9c975b0b28ad3b4a032c))
+
 ## [0.25.1](https://github.com/tomhoover/git-wt/compare/v0.25.0..v0.25.1) - 2026-04-24
 
 ### 🎨 Styling
@@ -14,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ⚙️ Miscellaneous Tasks
 
 - Revise release notes to match format of CHANGELOG - ([6ed0c88](https://github.com/tomhoover/git-wt/commit/6ed0c88a981b1415057fe3db5775b8fc121fe124))
+- Release v0.25.1 - ([50b9a0d](https://github.com/tomhoover/git-wt/commit/50b9a0de5c33807c6c0b4ee46920a4ca0dc6de0c))
 
 ## [0.25.0](https://github.com/tomhoover/git-wt/compare/v0.24.3..v0.25.0) - 2026-04-23
 
@@ -21,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - *(list)* Add --short flag for script-friendly output - ([7d15471](https://github.com/tomhoover/git-wt/commit/7d15471f064afeac12a26e4c77ae5c0b51e20ccd))
 - *(remove)* Require confirmation for partial matches - ([efc176c](https://github.com/tomhoover/git-wt/commit/efc176ceb86981221d26edb93c4e255ef0e877f3))
-- Add GIT_WT_DEBUG env var for bash trace debugging - ([6c01f06](https://github.com/tomhoover/git-wt/commit/6c01f06c01267d87849d319db6dbec2eb75adf72))
+- Add GIT\_WT\_DEBUG env var for bash trace debugging - ([6c01f06](https://github.com/tomhoover/git-wt/commit/6c01f06c01267d87849d319db6dbec2eb75adf72))
 
 ### 🐛 Bug Fixes
 
@@ -36,12 +43,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🧪 Testing
 
-- Add tests for GIT_WT_DEBUG env var and cd with no linked worktrees - ([83b5672](https://github.com/tomhoover/git-wt/commit/83b5672aac7523da9144a522cd438984d3ec0fd4))
+- Add tests for GIT\_WT\_DEBUG env var and cd with no linked worktrees - ([83b5672](https://github.com/tomhoover/git-wt/commit/83b5672aac7523da9144a522cd438984d3ec0fd4))
 
 ### ⚙️ Miscellaneous Tasks
 
-- Use more specific mktemp template in init_shell - ([abd40b8](https://github.com/tomhoover/git-wt/commit/abd40b8dce919920a9680804aa49f4eb58a421fb))
-- Remove claude* workflows - ([590950c](https://github.com/tomhoover/git-wt/commit/590950c7c27f0e2dabfa776696c5d2341ff5d52b))
+- Use more specific mktemp template in init\_shell - ([abd40b8](https://github.com/tomhoover/git-wt/commit/abd40b8dce919920a9680804aa49f4eb58a421fb))
+- Remove claude\* workflows - ([590950c](https://github.com/tomhoover/git-wt/commit/590950c7c27f0e2dabfa776696c5d2341ff5d52b))
 - Release v0.25.0 - ([7ed0b4d](https://github.com/tomhoover/git-wt/commit/7ed0b4da115d783b0c1e6fd4e9224112207bf35f))
 
 ### 💼 Other
@@ -103,14 +110,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🐛 Bug Fixes
 
-- Validate add_worktree early and reject extra args in remove - ([b6f881e](https://github.com/tomhoover/git-wt/commit/b6f881eff73a871972cc8ee014a914e53e450e49))
+- Validate add\_worktree early and reject extra args in remove - ([b6f881e](https://github.com/tomhoover/git-wt/commit/b6f881eff73a871972cc8ee014a914e53e450e49))
 - Reject extra positional args in add (>2 args after flags) - ([6ff6214](https://github.com/tomhoover/git-wt/commit/6ff6214bc1e37c73de9bbfea94f6846fd64ed4d3))
 - Correct .git-wt-copy warning to say 'source worktree' not 'main worktree' - ([d99a4a7](https://github.com/tomhoover/git-wt/commit/d99a4a7545e30e48008c14129d93e9e0bfaee46f))
 
 ### 🚜 Refactor
 
 - Reduce git worktree list calls and share parser - ([2a07b28](https://github.com/tomhoover/git-wt/commit/2a07b2849e6d02c7c4a6ed4f98fd99dc643ceda2))
-- Deduplicate maybe_mise_trust and copy_worktree_files in add_worktree - ([12f0b14](https://github.com/tomhoover/git-wt/commit/12f0b1478574dfdb34350624b48819b467040ad3))
+- Deduplicate maybe\_mise\_trust and copy\_worktree\_files in add\_worktree - ([12f0b14](https://github.com/tomhoover/git-wt/commit/12f0b1478574dfdb34350624b48819b467040ad3))
 - Eliminate second git worktree list call in remove - ([c93be12](https://github.com/tomhoover/git-wt/commit/c93be120fea921ea8545db9e4b568145c010406a))
 
 ### 📚 Documentation
@@ -133,7 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ⛰️ Features
 
-- Honor NO_COLOR to disable color output - ([9d71477](https://github.com/tomhoover/git-wt/commit/9d71477115bb7100ee7533c9e74571feb0fa91a9))
+- Honor NO\_COLOR to disable color output - ([9d71477](https://github.com/tomhoover/git-wt/commit/9d71477115bb7100ee7533c9e74571feb0fa91a9))
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -210,7 +217,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🧪 Testing
 
-- Remove .git-wt-copy teardown_file cleanup - ([ffaa0f8](https://github.com/tomhoover/git-wt/commit/ffaa0f8b6406fbb5f315a39132616d7b9ddc88c5))
+- Remove .git-wt-copy teardown\_file cleanup - ([ffaa0f8](https://github.com/tomhoover/git-wt/commit/ffaa0f8b6406fbb5f315a39132616d7b9ddc88c5))
 
 ## [0.21.0](https://github.com/tomhoover/git-wt/compare/v0.20.6..v0.21.0) - 2026-03-12
 
@@ -341,7 +348,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚜 Refactor
 
-- Polish status_worktrees() and add_worktree() - ([1cbef5b](https://github.com/tomhoover/git-wt/commit/1cbef5b83bb3c6ec1b63c7d34fb7c21120d35851))
+- Polish status\_worktrees() and add\_worktree() - ([1cbef5b](https://github.com/tomhoover/git-wt/commit/1cbef5b83bb3c6ec1b63c7d34fb7c21120d35851))
 
 ## [0.18.3](https://github.com/tomhoover/git-wt/compare/v0.18.2..v0.18.3) - 2026-03-09
 
@@ -363,7 +370,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 📚 Documentation
 
-- :robot: changelog file generated - ([c68e193](https://github.com/tomhoover/git-wt/commit/c68e193bdd4799c3a605fc171c87de9b1da6f650))
+- Changelog file generated - ([c68e193](https://github.com/tomhoover/git-wt/commit/c68e193bdd4799c3a605fc171c87de9b1da6f650))
 - Remove obsolete -d and --verbose flags from README; bump to 0.18.1 - ([a07c275](https://github.com/tomhoover/git-wt/commit/a07c275526b4443588b1cf5152e04ab781ecab01))
 
 ## [0.18.0](https://github.com/tomhoover/git-wt/compare/v0.17.0..v0.18.0) - 2026-03-09
@@ -382,13 +389,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🧪 Testing
 
-- Add bats_remote defensive cleanup to teardown_file - ([e2b9f13](https://github.com/tomhoover/git-wt/commit/e2b9f1360115bf4c813b211db7451a31c9dc4477))
+- Add bats\_remote defensive cleanup to teardown\_file - ([e2b9f13](https://github.com/tomhoover/git-wt/commit/e2b9f1360115bf4c813b211db7451a31c9dc4477))
 
 ## [0.16.4](https://github.com/tomhoover/git-wt/compare/v0.16.3..v0.16.4) - 2026-03-09
 
 ### 🚜 Refactor
 
-- Extract _git_wt_worktree_branches helper in zsh completion - ([6a2cd77](https://github.com/tomhoover/git-wt/commit/6a2cd77ab8cb85e955c24f7f3d25fdfc8cb77bea))
+- Extract \_git\_wt\_worktree\_branches helper in zsh completion - ([6a2cd77](https://github.com/tomhoover/git-wt/commit/6a2cd77ab8cb85e955c24f7f3d25fdfc8cb77bea))
 
 ## [0.16.3](https://github.com/tomhoover/git-wt/compare/v0.16.2..v0.16.3) - 2026-03-09
 
@@ -400,7 +407,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 📚 Documentation
 
-- :robot: changelog file generated - ([2e21960](https://github.com/tomhoover/git-wt/commit/2e219604baab3c2af2edde4e96b9e4350533d4d8))
+- Changelog file generated - ([2e21960](https://github.com/tomhoover/git-wt/commit/2e219604baab3c2af2edde4e96b9e4350533d4d8))
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -528,7 +535,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ⛰️ Features
 
-- Improve list output with * marker and color - ([fe3738c](https://github.com/tomhoover/git-wt/commit/fe3738c0407f89f7938c2882c5a73788dc025e61))
+- Improve list output with \* marker and color - ([fe3738c](https://github.com/tomhoover/git-wt/commit/fe3738c0407f89f7938c2882c5a73788dc025e61))
 
 ## [0.7.0](https://github.com/tomhoover/git-wt/compare/v0.6.3..v0.7.0) - 2026-03-06
 
@@ -592,7 +599,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🚜 Refactor
 
-- Rename test/.bats_deps to test/libs - ([923ab11](https://github.com/tomhoover/git-wt/commit/923ab113f37be71bfdece959fdb3faa48d8cb3de))
+- Rename test/.bats\_deps to test/libs - ([923ab11](https://github.com/tomhoover/git-wt/commit/923ab113f37be71bfdece959fdb3faa48d8cb3de))
 
 ### 📚 Documentation
 

@@ -100,8 +100,14 @@ require_conventional = false
 split_commits = false
 # An array of regex based parsers to modify commit messages prior to further processing.
 commit_preprocessors = [
+  # Remove :robot: emoji from commit messages.
+  { pattern = ' :robot: ', replace = ' ' },
+  # Escape underscores to prevent unintended Markdown formatting
+  { pattern = '_', replace = '\_' },
+  # Escape asterisks as well (common in Markdown)
+  { pattern = '\*', replace = '\*' },
   # Fix commit messages containing angle brackets, which can cause issues in markdown rendering.
-  { pattern = '<([A-Za-z]+)>', replace = '`<$1>`' },
+  { pattern = '<([A-Za-z0-9]+)>', replace = '`<$1>`' },
   # Replace issue numbers with link templates to be updated in `changelog.postprocessors`.
   { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "([#${2}](<REPO>/issues/${2}))" },
   # Check spelling of the commit message using https://github.com/crate-ci/typos.
